@@ -19,9 +19,9 @@ namespace RoyalVilla_API.Controllers
 
 
         [HttpGet]
-        public IEnumerable<Villa> GetVillas()
+        public async Task<ActionResult<IEnumerable<Villa>>> GetVillas()
         {
-            return _db.Villa.ToList();
+            return Ok(await _db.Villa.ToListAsync());
         }
 
         [HttpGet("{id:int}")]
