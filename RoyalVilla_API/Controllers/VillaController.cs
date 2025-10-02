@@ -49,6 +49,29 @@ namespace RoyalVilla_API.Controllers
             }
         }
 
-        
+        [HttpPost]
+        public async Task<ActionResult<Villa>> CreateVilla(Villa villa)
+        {
+            try
+            {
+                if (villa ==null)
+                {
+                    return BadRequest("Villa data is required");
+                }
+
+                await _db.Villa.AddAsync(villa);
+                await _db.SaveChangesAsync();
+                
+                return Ok(villa);
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"An error occurred while creating the villa: {ex.Message}");
+            }
+        }
+
+
     }
 }
