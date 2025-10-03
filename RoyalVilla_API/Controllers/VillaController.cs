@@ -78,6 +78,44 @@ namespace RoyalVilla_API.Controllers
             }
         }
 
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<Villa>> UpdateVilla(int id, VillaUpdateDTO villaDTO)
+        {
+            try
+            {
+                if (villaDTO == null)
+                {
+                    return BadRequest("Villa data is required");
+                }
+
+                if (id != villaDTO.Id)
+                {
+                    return BadRequest("Villa ID in URL does not match Villa ID in request body");
+                }
+
+
+                var existingVilla = await _db.Villa.FirstOrDefaultAsync(u => u.Id == id);
+
+                if (existingVilla ==null)
+                {
+                    return NotFound($"Villa with ID {id} was not found");
+                }
+
+                _mapper.Map(villaDTO,existingVilla);
+                existingVilla.UpdatedDate = DateTime.Now;
+                
+                await _db.SaveChangesAsync();
+
+                return Ok(villaDTO);
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"An error occurred while updating the villa: {ex.Message}");
+            }
+        }
+
 
     }
 }
