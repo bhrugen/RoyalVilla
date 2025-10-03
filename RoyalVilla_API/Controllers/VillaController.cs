@@ -93,13 +93,21 @@ namespace RoyalVilla_API.Controllers
                 {
                     return BadRequest("Villa ID in URL does not match Villa ID in request body");
                 }
-
+                
 
                 var existingVilla = await _db.Villa.FirstOrDefaultAsync(u => u.Id == id);
 
                 if (existingVilla ==null)
                 {
                     return NotFound($"Villa with ID {id} was not found");
+                }
+
+                var duplicateVilla = await _db.Villa.FirstOrDefaultAsync(u => u.Name.ToLower() == villaDTO.Name.ToLower()
+                && u.Id != id);
+
+                if (duplicateVilla != null)
+                {
+                    return Conflict($"A villa with the name '{villaDTO.Name}' already exists");
                 }
 
                 _mapper.Map(villaDTO,existingVilla);
