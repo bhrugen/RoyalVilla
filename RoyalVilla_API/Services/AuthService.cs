@@ -1,20 +1,26 @@
 ﻿using AutoMapper;
 using Azure.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using RoyalVilla_API.Data;
 using RoyalVilla_API.Models;
 using RoyalVilla_API.Models.DTO;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace RoyalVilla_API.Services
 {
     public class AuthService : IAuthService
     {
         private readonly ApplicationDbContext _db;
+        private readonly IConfiguration _configuration;
         private readonly IMapper _mapper;
 
         public AuthService(ApplicationDbContext db, IConfiguration configuration, IMapper mapper)
         {
             _db = db;
+            _configuration = configuration;
             _mapper = mapper;
         }
 
@@ -79,6 +85,28 @@ namespace RoyalVilla_API.Services
                 // Handle any other unexpected errors
                 throw new InvalidOperationException("An unexpected error occurred during user registration", ex);
             }
+        }
+
+
+        private string GenerateJwtToken(User user)
+        {
+            var key = Encoding.ASCII.GetBytes(_configuration.GetSection("JwtSettings")["Secret"]);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[] {
+                    new Claim(ClaimTypes.NameIdentifier,user.Id.ToString()),
+                    new Claim(ClaimTypes.Email,user.Email),
+                    new Claim(ClaimTypes.Name,user.Name),
+                    new Claim(ClaimTypes.Role,user.Role),
+                }),
+                Expires = DateTime.UtcNow.AddDays(7),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
         }
     }
 }
