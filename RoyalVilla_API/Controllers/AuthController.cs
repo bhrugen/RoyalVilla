@@ -14,7 +14,7 @@ namespace RoyalVilla_API.Controllers
     {
         private readonly IAuthService _authService = authService;
 
-        [HttpPost]
+        [HttpPost("register")]
         [ProducesResponseType(typeof(ApiResponse<UserDTO>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
@@ -53,7 +53,7 @@ namespace RoyalVilla_API.Controllers
 
 
 
-        [HttpPost]
+        [HttpPost("login")]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<LoginResponseDTO>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
