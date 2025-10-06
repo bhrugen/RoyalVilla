@@ -6,4 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RoyalVilla.DTO\RoyalVilla.DTO.csproj" />
+  </ItemGroup>
+
 </Project>

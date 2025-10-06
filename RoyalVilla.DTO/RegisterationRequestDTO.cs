@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace RoyalVilla_API.Models.DTO
+namespace RoyalVilla.DTO
 {
     public class RegisterationRequestDTO
     {

@@ -6,7 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using RoyalVilla_API.Data;
 using RoyalVilla_API.Models;
-using RoyalVilla_API.Models.DTO;
+using RoyalVilla.DTO;
 using RoyalVilla_API.Services;
 using Scalar.AspNetCore;
 using System.Security.Claims;
