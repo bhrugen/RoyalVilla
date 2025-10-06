@@ -82,7 +82,7 @@ namespace RoyalVilla_API.Controllers
 
                 var villaExists = await _db.Villa.FirstOrDefaultAsync(u => u.Id== villaAmentiesDTO.VillaId);
 
-                if (villaExists != null)
+                if (villaExists == null)
                 {
                     return Conflict(ApiResponse<object>.Conflict($"Villa with the ID '{villaAmentiesDTO.VillaId}'does not exist."));
                 }
@@ -109,47 +109,47 @@ namespace RoyalVilla_API.Controllers
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<ApiResponse<VillaAmentiesDTO>>> UpdateVilla(int id, VillaAmentiesUpdateDTO villaAmentiesDTO)
+        public async Task<ActionResult<ApiResponse<VillaAmentiesDTO>>> UpdateVillaAmenities(int id, VillaAmentiesUpdateDTO villaAmentiesDTO)
         {
             try
             {
                 if (villaAmentiesDTO == null)
                 {
-                    return BadRequest(ApiResponse<object>.BadRequest("VillaAmenities data is required"));
+                    return BadRequest(ApiResponse<object>.BadRequest("Villa Amenities data is required"));
                 }
 
                 if (id != villaAmentiesDTO.Id)
                 {
-                    return BadRequest(ApiResponse<object>.BadRequest("VillaAmenities ID in URL does not match VillaAmenities ID in request body"));
+                    return BadRequest(ApiResponse<object>.BadRequest("Villa Amenities ID in URL does not match VillaAmenities ID in request body"));
                 }
-                
 
-                var existingVilla = await _db.VillaAmenities.FirstOrDefaultAsync(u => u.Id == id);
+                var villaExists = await _db.Villa.FirstOrDefaultAsync(u => u.Id == villaAmentiesDTO.VillaId);
 
-                if (existingVilla ==null)
+                if (villaExists == null)
                 {
-                    return NotFound(ApiResponse<object>.NotFound($"VillaAmenities with ID {id} was not found"));
+                    return Conflict(ApiResponse<object>.Conflict($"Villa with the ID '{villaAmentiesDTO.VillaId}'does not exist."));
                 }
 
-                var duplicateVilla = await _db.VillaAmenities.FirstOrDefaultAsync(u => u.Name.ToLower() == villaAmentiesDTO.Name.ToLower()
-                && u.Id != id);
+                var existingVillaAmenities = await _db.VillaAmenities.FirstOrDefaultAsync(u => u.Id == id);
 
-                if (duplicateVilla != null)
+                if (existingVillaAmenities == null)
                 {
-                    return Conflict(ApiResponse<object>.Conflict($"A villa with the name '{villaAmentiesDTO.Name}' already exists"));
+                    return NotFound(ApiResponse<object>.NotFound($"Villa Amenities with ID {id} was not found"));
                 }
 
-                _mapper.Map(villaAmentiesDTO,existingVilla);
-                existingVilla.UpdatedDate = DateTime.Now;
+              
+
+                _mapper.Map(villaAmentiesDTO, existingVillaAmenities);
+                existingVillaAmenities.UpdatedDate = DateTime.Now;
                 
                 await _db.SaveChangesAsync();
-                var response = ApiResponse<VillaAmentiesDTO>.Ok(_mapper.Map<VillaAmentiesDTO>(villaAmentiesDTO), "VillaAmenities updated successfully");
-                return Ok(villaAmentiesDTO);
+                var response = ApiResponse<VillaAmentiesDTO>.Ok(_mapper.Map<VillaAmentiesDTO>(existingVillaAmenities), "Villa Amenities updated successfully");
+                return Ok(response);
 
             }
             catch (Exception ex)
             {
-                var errorResponse = ApiResponse<object>.Error(500, "An error occurred while creating the villa:", ex.Message);
+                var errorResponse = ApiResponse<object>.Error(500, "An error occurred while creating the villa amenities:", ex.Message);
                 return StatusCode(500, errorResponse);
             }
         }
@@ -159,27 +159,27 @@ namespace RoyalVilla_API.Controllers
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ApiResponse<object>>> DeleteVilla(int id)
+        public async Task<ActionResult<ApiResponse<object>>> DeleteVillaAmenities(int id)
         {
             try
             {
-                var existingVilla = await _db.VillaAmenities.FirstOrDefaultAsync(u => u.Id == id);
+                var existingVillaAmenities = await _db.VillaAmenities.FirstOrDefaultAsync(u => u.Id == id);
 
-                if (existingVilla == null)
+                if (existingVillaAmenities == null)
                 {
-                    return NotFound(ApiResponse<object>.NotFound($"VillaAmenities with ID {id} was not found"));
+                    return NotFound(ApiResponse<object>.NotFound($"Villa Amenities with ID {id} was not found"));
                 }
 
-                _db.VillaAmenities.Remove(existingVilla);
+                _db.VillaAmenities.Remove(existingVillaAmenities);
                 await _db.SaveChangesAsync();
 
-                var response = ApiResponse<object>.NoContent("VillaAmenities deleted successfully");
+                var response = ApiResponse<object>.NoContent("Villa Amenities deleted successfully");
                 return Ok(response);
 
             }
             catch (Exception ex)
             {
-                var errorResponse = ApiResponse<object>.Error(500, "An error occurred while creating the villa:", ex.Message);
+                var errorResponse = ApiResponse<object>.Error(500, "An error occurred while creating the villa amenities:", ex.Message);
                 return StatusCode(500, errorResponse);
             }
         }
