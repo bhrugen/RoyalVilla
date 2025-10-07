@@ -1,8 +1,334 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-}
+﻿@using RoyalVilla.DTO
+@model IEnumerable<VillaDTO>
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+
+<!-- Hero Carousel Section -->
+<div id="heroCarousel" class="carousel slide carousel-fade mb-5" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+    </div>
+    <div class="carousel-inner">
+        <div class="carousel-item active">
+            <div class="carousel-slide" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="carousel-caption-custom">
+                    <h1 class="display-3 fw-bold mb-4 animate-fade-in">Welcome to Luxury Villas</h1>
+                    <p class="lead mb-4 fs-4">Discover your perfect getaway in paradise</p>
+                    <a href="#villa-listings" class="btn btn-light btn-lg px-5 smooth-scroll">
+                        <i class="bi bi-arrow-down-circle"></i> Explore Villas
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="carousel-item">
+            <div class="carousel-slide" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="carousel-caption-custom">
+                    <h1 class="display-3 fw-bold mb-4 animate-fade-in">Premium Amenities</h1>
+                    <p class="lead mb-4 fs-4">Experience luxury living at its finest</p>
+                    <a href="#villa-listings" class="btn btn-light btn-lg px-5 smooth-scroll">
+                        <i class="bi bi-star-fill"></i> View Collection
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="carousel-item">
+            <div class="carousel-slide" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="carousel-caption-custom">
+                    <h1 class="display-3 fw-bold mb-4 animate-fade-in">Book Your Dream Villa</h1>
+                    <p class="lead mb-4 fs-4">Unforgettable memories await you</p>
+                    <a href="#villa-listings" class="btn btn-light btn-lg px-5 smooth-scroll">
+                        <i class="bi bi-calendar-check"></i> Check Availability
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
 </div>
+
+<div class="container mt-4" id="villa-listings">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="text-center">
+                <h2 class="display-4 fw-bold text-primary">
+                    <i class="bi bi-house-door-fill"></i> Luxury Villa Collection
+                </h2>
+                <p class="lead text-muted">Browse our exclusive selection of premium properties</p>
+                <div class="divider-custom">
+                    <div class="divider-line"></div>
+                    <div class="divider-icon"><i class="bi bi-gem"></i></div>
+                    <div class="divider-line"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i> @TempData["error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-info text-center" role="alert">
+                    <i class="bi bi-info-circle-fill fs-1 d-block mb-3"></i>
+                    <h4>No Villas Available</h4>
+                    <p class="mb-0">There are currently no villas to display. Please check back later!</p>
+                </div>
+            </div>
+        </div>
+    }
+    <!-- Villa Cards Grid -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        <div class="col">
+            <div class="card h-100 shadow-sm hover-shadow transition">
+                <!-- Villa Image -->
+                <div class="position-relative overflow-hidden">
+                    <img src="#" class="card-img-top villa-image" style="height: 250px; object-fit: cover;">
+                    <div class="card-img-top bg-gradient-primary d-flex align-items-center justify-content-center" style="height: 250px;">
+                        <i class="bi bi-image text-white" style="font-size: 4rem;"></i>
+                    </div>
+                    <!-- Price Badge -->
+                    <div class="position-absolute top-0 end-0 m-3">
+                        <span class="badge bg-success fs-6 px-3 py-2 rounded-pill shadow">
+                            $$$/night
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Card Body -->
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title text-primary fw-bold mb-3">Name</h5>
+
+                    <p class="card-text text-muted flex-grow-1">
+                        Details
+                    </p>
+
+                    <!-- Villa Details -->
+                    <div class="mb-3">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-people-fill text-primary me-2"></i>
+                                    <small class="text-muted">XX Guests</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-square-fill text-primary me-2"></i>
+                                    <small class="text-muted">XX sqft</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2">
+                        <a href="mailto:hello@dotnetmastery.com?"
+                           class="btn btn-primary btn-hover">
+                            <i class="bi bi-envelope"></i> Contact Us
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Section -->
+    <div class="row mt-5 mb-5">
+        <div class="col-12">
+            <div class="card shadow-lg border-0 stats-card">
+                <div class="card-body p-4">
+                    <h3 class="text-center mb-4 fw-bold">At a Glance</h3>
+                    <div class="row text-center g-4">
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <i class="bi bi-house-heart-fill text-primary fs-1 mb-3"></i>
+                                <h3 class="text-primary fw-bold mb-1">XX</h3>
+                                <p class="text-muted mb-0">Total Villas</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <i class="bi bi-cash-coin text-success fs-1 mb-3"></i>
+                                <h3 class="text-success fw-bold mb-1">$$$</h3>
+                                <p class="text-muted mb-0">Starting From</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <i class="bi bi-people-fill text-info fs-1 mb-3"></i>
+                                <h3 class="text-info fw-bold mb-1">XX</h3>
+                                <p class="text-muted mb-0">Max Occupancy</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <i class="bi bi-arrows-fullscreen text-warning fs-1 mb-3"></i>
+                                <h3 class="text-warning fw-bold mb-1">XX</h3>
+                                <p class="text-muted mb-0">Total Sqft</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+<!-- Custom Styles -->
+<style>
+    /* Carousel Styles */
+    .carousel-slide {
+        height: 500px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .carousel-caption-custom {
+        text-align: center;
+        color: white;
+        z-index: 10;
+        animation: fadeInUp 1s ease-in-out;
+    }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .carousel-fade .carousel-item {
+        transition: opacity 1s ease-in-out;
+    }
+
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        background-color: rgba(0, 0, 0, 0.5);
+        border-radius: 50%;
+        padding: 20px;
+    }
+
+    /* Divider Styles */
+    .divider-custom {
+        display: flex;
+        align-items: center;
+        margin: 2rem 0;
+    }
+
+    .divider-line {
+        flex: 1;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #667eea, transparent);
+    }
+
+    .divider-icon {
+        padding: 0 1rem;
+        font-size: 1.5rem;
+        color: #667eea;
+    }
+
+    /* Card Hover Effects */
+    .hover-shadow {
+        transition: all 0.3s ease-in-out;
+        border-radius: 15px;
+    }
+
+    .hover-shadow:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 1.5rem 4rem rgba(0,0,0,.2) !important;
+    }
+
+    .villa-image {
+        transition: transform 0.5s ease-in-out;
+    }
+
+    .card:hover .villa-image {
+        transform: scale(1.1);
+    }
+
+    .card {
+        border: none;
+        overflow: hidden;
+        border-radius: 15px;
+    }
+
+    .transition {
+        transition: all 0.3s ease;
+    }
+
+    /* Button Hover Effect */
+    .btn-hover {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .btn-hover:hover {
+        transform: scale(1.02);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    /* Stats Card */
+    .stats-card {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border-radius: 15px;
+    }
+
+    .stat-item {
+        padding: 1rem;
+        transition: transform 0.3s ease;
+    }
+
+    .stat-item:hover {
+        transform: translateY(-5px);
+    }
+
+    /* Background Gradient */
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    /* Smooth Scroll */
+    .smooth-scroll {
+        scroll-behavior: smooth;
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .carousel-slide {
+            height: 400px;
+        }
+
+        .carousel-caption-custom h1 {
+            font-size: 2rem;
+        }
+
+        .carousel-caption-custom p {
+            font-size: 1rem;
+        }
+    }
+</style>
