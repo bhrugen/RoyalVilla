@@ -28,7 +28,7 @@ namespace RoyalVillaWeb.Services
                 var client = _httpClient.CreateClient("RoyalVillaAPI");
                 var message = new HttpRequestMessage
                 {
-                    RequestUri = new Uri(apiRequest.Url),
+                    RequestUri = new Uri(apiRequest.Url,uriKind:UriKind.Relative),
                     Method = GetHttpMethod(apiRequest.ApiType),
                 };
 

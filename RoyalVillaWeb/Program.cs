@@ -14,7 +14,7 @@ builder.Services.AddAutoMapper(o =>
     o.CreateMap<VillaUpdateDTO, VillaDTO>().ReverseMap();
 });
 
-builder.Services.AddHttpClient("RoyalAPI", client =>
+builder.Services.AddHttpClient("RoyalVillaAPI", client =>
 {
     var villaAPIUrl = builder.Configuration.GetValue<string>("ServiceUrls:VillaAPI");
     client.BaseAddress = new Uri(villaAPIUrl);
