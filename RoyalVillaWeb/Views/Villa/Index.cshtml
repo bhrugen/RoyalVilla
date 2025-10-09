@@ -17,14 +17,14 @@
     @if (TempData["success"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle me-2"></i> Success
+            <i class="bi bi-check-circle me-2"></i> @TempData["success"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
     @if (TempData["error"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle me-2"></i>Error
+            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["error"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
