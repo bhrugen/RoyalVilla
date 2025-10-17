@@ -1,5 +1,97 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-}
+﻿
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <!-- TempData Messages -->
+
+            <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> SUCCESS
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> ERROR
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div class="card shadow mt-5 mb-5">
+                <div class="card-body p-5">
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        <div class="mb-3">
+                            <i class="bi bi-person-plus-fill text-success display-1"></i>
+                        </div>
+                        <h3 class="fw-bold text-primary mb-2">Create Account</h3>
+                        <p class="text-muted">Join our exclusive villa community</p>
+                    </div>
+
+                    <!-- Register Form -->
+                    <form method="post">
+                        <div class="text-danger mb-3"></div>
+
+                        <!-- Name Field -->
+                        <div class="form-floating mb-3">
+                            <input class="form-control" placeholder="Full Name" />
+                            <label class="form-label">
+                                <i class="bi bi-person me-2"></i>Full Name
+                            </label>
+                            <span class="text-danger"></span>
+                        </div>
+
+                        <!-- Email Field -->
+                        <div class="form-floating mb-3">
+                            <input class="form-control" placeholder="name@example.com" />
+                            <label class="form-label">
+                                <i class="bi bi-envelope me-2"></i>Email Address
+                            </label>
+                            <span class="text-danger"></span>
+                        </div>
+
+                        <!-- Password Field -->
+                        <div class="form-floating mb-3">
+                            <input class="form-control" placeholder="Password" type="password" />
+                            <label class="form-label">
+                                <i class="bi bi-lock me-2"></i>Password
+                            </label>
+                            <span class="text-danger"></span>
+                        </div>
+
+                        <!-- Role Field -->
+                        <div class="form-floating mb-4">
+                            <select class="form-select">
+                                <option selected>Customer</option>
+                                <option>Admin</option>
+                            </select>
+                            <label class="form-label">
+                                <i class="bi bi-shield-check me-2"></i>Account Type
+                            </label>
+                            <span class="text-danger"></span>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-check-circle me-2"></i>Create Account
+                            </button>
+                        </div>
+
+                        <!-- Divider -->
+                        <hr class="my-4">
+                        <div class="text-center">
+                            <small class="text-muted">OR</small>
+                        </div>
+                        <hr class="my-4">
+
+                        <!-- Login Link -->
+                        <div class="text-center">
+                            <p class="mb-3 text-muted">Already have an account?</p>
+                            <a href="#" class="btn btn-outline-primary">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In Instead
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

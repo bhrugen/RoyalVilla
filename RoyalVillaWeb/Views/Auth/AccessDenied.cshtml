@@ -1,5 +1,28 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-}
+﻿
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow mt-5 mb-5">
+                <div class="card-body p-5 text-center">
+                    <!-- Header -->
+                    <div class="mb-4">
+                        <i class="bi bi-shield-exclamation text-warning display-1"></i>
+                    </div>
+
+                    <h3 class="fw-bold text-danger mb-3">Access Denied</h3>
+                    <p class="text-muted mb-4">
+                        Sorry, you don't have permission to access this resource.
+                        Please contact your administrator if you believe this is an error.
+                    </p>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2">
+                        <a asp-action="index" asp-controller="home" class="btn btn-primary">
+                            <i class="bi bi-house me-2"></i>Go to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
