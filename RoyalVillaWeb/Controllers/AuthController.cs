@@ -103,7 +103,8 @@ namespace RoyalVillaWeb.Controllers
 
         public async Task<IActionResult> Logout()
         {
-            return View();
+            await HttpContext.SignOutAsync();
+            return RedirectToAction("Index", "Home");
         }
 
 
