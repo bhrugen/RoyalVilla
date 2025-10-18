@@ -10,9 +10,9 @@ using RoyalVilla_API.Services;
 namespace RoyalVilla_API.Controllers
 {
     
-    [ApiVersion("1.0")]
-    [ApiVersion("2.0")]
-    [Route("api/v{version:apiVersion}/auth")]
+    [ApiVersionNeutral]//this will not work with the route that we have  defined because we have version in the route
+    
+    [Route("api/auth")]
     [ApiController]
     public class AuthController(IAuthService authService) : ControllerBase
     {
