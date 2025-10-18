@@ -1,19 +1,22 @@
-﻿using AutoMapper;
+﻿using Asp.Versioning;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RoyalVilla.DTO;
 using RoyalVilla_API.Data;
 using RoyalVilla_API.Models;
-using RoyalVilla.DTO;
 using System.Collections;
 
 namespace RoyalVilla_API.Controllers.v1
 {
-    [Route("v1/api/villa-amenities")]
+    //[Route("v1/api/villa-amenities")]
+    [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
+    [Route("api/v{version:apiVersion}/villa-amenities")]
     [ApiController]
-    [ApiExplorerSettings(GroupName = "v1")]
-    //ask GTP what the line above does
+    //[ApiExplorerSettings(GroupName = "v1")]
     //show this works https://localhost:7141/openapi/v1.json
     //show this does not https://localhost:7141/openapi/v2.json
     //[Authorize(Roles = "Customer,Admin")]
