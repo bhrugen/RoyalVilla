@@ -8,7 +8,7 @@ using RoyalVilla_API.Models;
 using RoyalVilla.DTO;
 using System.Collections;
 
-namespace RoyalVilla_API.Controllers
+namespace RoyalVilla_API.Controllers.v1
 {
     [Route("api/villa")]
     [ApiController]
