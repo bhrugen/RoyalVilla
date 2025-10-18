@@ -94,6 +94,10 @@
     }
     else
     {
+        @if (Model.Count() > 0)
+        {
+            
+        
         <!-- Villa Cards Grid -->
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
             @foreach (var villa in Model)
@@ -161,47 +165,49 @@
                 </div>
             }
         </div>
-    }
-    <!-- Statistics Section -->
-    <div class="row mt-5 mb-5">
-        <div class="col-12">
-            <div class="card shadow-lg border-0 stats-card">
-                <div class="card-body p-4">
-                    <h3 class="text-center mb-4 fw-bold">At a Glance</h3>
-                    <div class="row text-center g-4">
-                        <div class="col-md-3">
-                            <div class="stat-item">
-                                <i class="bi bi-house-heart-fill text-primary fs-1 mb-3"></i>
-                                <h3 class="text-primary fw-bold mb-1">@Model.Count()</h3>
-                                <p class="text-muted mb-0">Total Villas</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="stat-item">
-                                <i class="bi bi-cash-coin text-success fs-1 mb-3"></i>
-                                <h3 class="text-success fw-bold mb-1">$@Model.Min(v=>v.Rate).ToString("N0")</h3>
-                                <p class="text-muted mb-0">Starting From</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="stat-item">
-                                <i class="bi bi-people-fill text-info fs-1 mb-3"></i>
-                                <h3 class="text-info fw-bold mb-1">@Model.Max(v=>v.Occupancy)</h3>
-                                <p class="text-muted mb-0">Max Occupancy</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="stat-item">
-                                <i class="bi bi-arrows-fullscreen text-warning fs-1 mb-3"></i>
-                                <h3 class="text-warning fw-bold mb-1">@Model.Sum(v=>v.Sqft).ToString("N0")</h3>
-                                <p class="text-muted mb-0">Total Sqft</p>
+            <!-- Statistics Section -->
+            <div class="row mt-5 mb-5">
+                <div class="col-12">
+                    <div class="card shadow-lg border-0 stats-card">
+                        <div class="card-body p-4">
+                            <h3 class="text-center mb-4 fw-bold">At a Glance</h3>
+                            <div class="row text-center g-4">
+                                <div class="col-md-3">
+                                    <div class="stat-item">
+                                        <i class="bi bi-house-heart-fill text-primary fs-1 mb-3"></i>
+                                        <h3 class="text-primary fw-bold mb-1">@Model.Count()</h3>
+                                        <p class="text-muted mb-0">Total Villas</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="stat-item">
+                                        <i class="bi bi-cash-coin text-success fs-1 mb-3"></i>
+                                        <h3 class="text-success fw-bold mb-1">$@Model.Min(v => v.Rate).ToString("N0")</h3>
+                                        <p class="text-muted mb-0">Starting From</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="stat-item">
+                                        <i class="bi bi-people-fill text-info fs-1 mb-3"></i>
+                                        <h3 class="text-info fw-bold mb-1">@Model.Max(v => v.Occupancy)</h3>
+                                        <p class="text-muted mb-0">Max Occupancy</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="stat-item">
+                                        <i class="bi bi-arrows-fullscreen text-warning fs-1 mb-3"></i>
+                                        <h3 class="text-warning fw-bold mb-1">@Model.Sum(v => v.Sqft).ToString("N0")</h3>
+                                        <p class="text-muted mb-0">Total Sqft</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+        }
+    }
+   
     
 </div>
 
