@@ -1,12 +1,14 @@
+using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using RoyalVilla.DTO;
 using RoyalVilla_API.Data;
 using RoyalVilla_API.Models;
-using RoyalVilla.DTO;
 using RoyalVilla_API.Services;
 using Scalar.AspNetCore;
 using System.Security.Claims;
@@ -46,6 +48,18 @@ builder.Services.AddDbContext<ApplicationDbContext>(option =>
 });
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+// Enhanced API versioning configuration
+builder.Services.AddApiVersioning(options =>
+{
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.ReportApiVersions = true;
+}).AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+});
+
 builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer((document, context, cancellationToken) =>
@@ -97,12 +111,34 @@ await SeedDataAsync(app);
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.MapOpenApi("/openapi/{documentName}.json");
+    // Get the provider again for Scalar configuration
+    var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+
     app.MapScalarApiReference(options =>
     {
         options.Title = "Demo API — Scalar (Controllers)";
-        options.AddDocument("v1", "Demo API v1", "/openapi/v1.json", isDefault: true)
-               .AddDocument("v2", "Demo API v2", "/openapi/v2.json");
+        var sortedVersions = provider.ApiVersionDescriptions
+          .OrderBy(v => v.ApiVersion)
+          .ToList();
+
+        foreach (var description in sortedVersions)
+        {
+            var versionName = description.GroupName;
+            var versionNumber = description.ApiVersion.ToString();
+            var displayName = $"Demo API {versionNumber}";
+
+            // Add deprecation indicator to display name
+            if (description.IsDeprecated)
+            {
+                displayName += " (Deprecated)";
+            }
+
+            // Set the first (oldest) version as default, or you can customize this logic
+            var isDefault = description.ApiVersion.Equals(new ApiVersion(2, 0));
+
+            options.AddDocument(versionName, displayName, $"/openapi/{versionName}.json", isDefault);
+        }
     });
 }
 app.UseCors(o => o.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod().WithExposedHeaders("*"));
