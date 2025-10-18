@@ -22,8 +22,4 @@
     <ProjectReference Include="..\RoyalVilla.DTO\RoyalVilla.DTO.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Controllers\v2\" />
-  </ItemGroup>
-
 </Project>
