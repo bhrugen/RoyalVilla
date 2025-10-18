@@ -98,7 +98,12 @@ await SeedDataAsync(app);
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.MapScalarApiReference();
+    app.MapScalarApiReference(options =>
+    {
+        options.Title = "Demo API — Scalar (Controllers)";
+        options.AddDocument("v1", "Demo API v1", "/openapi/v1.json", isDefault: true)
+               .AddDocument("v2", "Demo API v2", "/openapi/v2.json");
+    });
 }
 app.UseCors(o => o.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod().WithExposedHeaders("*"));
 app.UseHttpsRedirection();
