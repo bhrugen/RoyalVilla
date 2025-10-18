@@ -10,7 +10,7 @@ using System.Collections;
 
 namespace RoyalVilla_API.Controllers.v2
 {
-    [Route("api/villa")]
+    [Route("api/v2/villa")]
     [ApiController]
     //[Authorize(Roles = "Customer,Admin")]
     public class VillaController : ControllerBase
