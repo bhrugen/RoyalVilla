@@ -35,18 +35,23 @@ builder.Services.AddAuthentication(option =>
         ValidateAudience = false,
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero,
-        NameClaimType=ClaimTypes.Name,
-        RoleClaimType=ClaimTypes.Role,
+        NameClaimType = ClaimTypes.Name,
+        RoleClaimType = ClaimTypes.Role,
     };
 
 });
 
 
-builder.Services.AddApiVersioning(options => {
+builder.Services.AddApiVersioning(options =>
+{
     options.AssumeDefaultVersionWhenUnspecified = true;
     options.DefaultApiVersion = new ApiVersion(1, 0);
     options.ReportApiVersions = true;
-}).AddApiExplorer();
+}).AddApiExplorer(option =>
+{
+    option.GroupNameFormat = "'v'VVV";
+    option.SubstituteApiVersionInUrl = true;
+});
 builder.Services.AddCors();
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(option =>
@@ -55,33 +60,59 @@ builder.Services.AddDbContext<ApplicationDbContext>(option =>
 });
 builder.Services.AddControllers();
 
-builder.Services.AddOpenApi(options =>
-{
-    options.AddDocumentTransformer((document, context, cancellationToken) =>
-    {
-        document.Components ??= new();
-        document.Components.SecuritySchemes = new Dictionary<string, IOpenApiSecurityScheme>
-        {
-            ["Bearer"] = new OpenApiSecurityScheme
-            {
-                Type = SecuritySchemeType.Http,
-                Scheme = "bearer",
-                BearerFormat = "JWT",
-                Description = "Enter JWT Bearer token"
-            }
-        };
 
-        document.Security =
-        [
-            new OpenApiSecurityRequirement
+
+var builderProvider = builder.Services.BuildServiceProvider().GetRequiredService<IApiVersionDescriptionProvider>();
+foreach (var description in builderProvider.ApiVersionDescriptions)
+{
+    var versionName = description.GroupName;
+    var versionNumber = description.ApiVersion.ToString();
+    var displayName = $"Demo API -- {versionNumber}";
+
+    builder.Services.AddOpenApi(versionName,options =>
+    {
+        options.AddDocumentTransformer((document, context, cancellationToken) =>
+        {
+            document.Info = new OpenApiInfo
+            {
+                Title = "Demo Royal API",
+                Version = versionName,
+                Description = displayName,
+                Contact = new OpenApiContact
+                {
+                    Name = "Bhrugen Patel",
+                    Email = "hello@dotnetmastery.com"
+                }
+            };
+
+            document.Components ??= new();
+            document.Components.SecuritySchemes = new Dictionary<string, IOpenApiSecurityScheme>
+            {
+                ["Bearer"] = new OpenApiSecurityScheme
+                {
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    Description = "Enter JWT Bearer token"
+                }
+            };
+
+            document.Security =
+            [
+                new OpenApiSecurityRequirement
             {
                 { new OpenApiSecuritySchemeReference("Bearer"), new List<string>() }
             }
-        ];
+            ];
 
-        return Task.CompletedTask;
+            return Task.CompletedTask;
+        });
     });
-});
+
+}
+
+
+
 
 
 builder.Services.AddAutoMapper(o =>
@@ -94,7 +125,7 @@ builder.Services.AddAutoMapper(o =>
     o.CreateMap<VillaAmenities, VillaAmentiesCreateDTO>().ReverseMap();
     o.CreateMap<VillaAmenities, VillaAmentiesUpdateDTO>().ReverseMap();
     o.CreateMap<VillaAmenities, VillaAmentiesDTO>()
-    .ForMember(dest=>dest.VillaName, opt=>opt.MapFrom(src=>src.Villa!=null? src.Villa.Name : null));
+    .ForMember(dest => dest.VillaName, opt => opt.MapFrom(src => src.Villa != null ? src.Villa.Name : null));
     o.CreateMap<VillaAmentiesDTO, VillaAmenities>();
 });
 
@@ -115,7 +146,7 @@ if (app.Environment.IsDevelopment())
 
         var sortedVersion = provider.ApiVersionDescriptions.OrderBy(v => v.ApiVersion).ToList();
 
-        foreach(var description in sortedVersion)
+        foreach (var description in sortedVersion)
         {
             var versionName = description.GroupName;
             var versionNumber = description.ApiVersion.ToString();
@@ -124,8 +155,8 @@ if (app.Environment.IsDevelopment())
             var isDefault = description.ApiVersion.Equals(new ApiVersion(2, 0));
             option.AddDocument(versionName, displayName, $"/openapi/{versionName}.json", isDefault);
         }
-        
-        
+
+
     });
 }
 app.UseCors(o => o.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod().WithExposedHeaders("*"));
