@@ -7,11 +7,13 @@ using RoyalVilla_API.Data;
 using RoyalVilla_API.Models;
 using RoyalVilla.DTO;
 using System.Collections;
+using Asp.Versioning;
 
 namespace RoyalVilla_API.Controllers.v1
 {
-    [Route("api/v1/villa-amenities")]
-    [ApiExplorerSettings(GroupName = "v1")]
+    [Route("api/v{version:apiVersion}/villa-amenitie")]
+    [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
     [ApiController]
     //[Authorize(Roles = "Customer,Admin")]
     public class VillaAmentiesController : ControllerBase
