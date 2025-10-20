@@ -1,16 +1,19 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using RoyalVilla_API.Models;
 
 namespace RoyalVilla_API.Data
 {
-    public class ApplicationDbContext(DbContextOptions options) : DbContext(options)
+    public class ApplicationDbContext(DbContextOptions options) : IdentityDbContext(options)
     {
         public DbSet<Villa> Villa { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<VillaAmenities> VillaAmenities { get; set; }
+        public DbSet<ApplicationUser> ApplicationUsers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            //if this is not therem migration will show error
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Villa>().HasData(
