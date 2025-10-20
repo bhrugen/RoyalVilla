@@ -34,8 +34,13 @@ namespace RoyalVilla_API.Controllers.v2
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<IEnumerable<VillaDTO>>>> GetVillas([FromQuery] string? filterBy,
             [FromQuery] string? filterQuery, [FromQuery] string? sortBy,
-            [FromQuery] string? sortOrder = "asc")
+            [FromQuery] string? sortOrder = "asc", [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
         {
+
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
             var villasQuery = _db.Villa.AsQueryable();
             if(!string.IsNullOrEmpty(filterQuery) && !string.IsNullOrEmpty(filterBy))
             {
@@ -99,9 +104,10 @@ namespace RoyalVilla_API.Controllers.v2
                 villasQuery = villasQuery.OrderBy(u => u.Id);
             }
 
+            //page 5, pagesize 10
+            var skip = (page - 1) * pageSize;
 
-
-                var villas = await villasQuery.ToListAsync();
+                var villas = await villasQuery.Skip(skip).Take(pageSize).ToListAsync();
             var dtoResponseVilla = _mapper.Map<List<VillaDTO>>(villas);
             var response = ApiResponse<IEnumerable<VillaDTO>>.Ok(dtoResponseVilla, "Villas retrieved successfully");
             return Ok(response);
