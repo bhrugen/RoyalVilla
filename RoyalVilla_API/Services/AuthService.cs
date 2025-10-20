@@ -17,14 +17,16 @@ namespace RoyalVilla_API.Services
     {
         private readonly ApplicationDbContext _db;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IConfiguration _configuration;
         private readonly IMapper _mapper;
 
         public AuthService(ApplicationDbContext db, IConfiguration configuration, IMapper mapper,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             _db = db;
             _userManager = userManager;
+            _roleManager = roleManager;
             _configuration = configuration;
             _mapper = mapper;
         }
@@ -81,19 +83,38 @@ namespace RoyalVilla_API.Services
                     throw new InvalidOperationException($"User with email '{registerationRequestDTO.Email}' already exists");
                 }
 
-                User user = new()
+                ApplicationUser user = new()
                 {
+                    UserName = registerationRequestDTO.Email,
                     Email = registerationRequestDTO.Email,
                     Name = registerationRequestDTO.Name,
-                    Password = registerationRequestDTO.Password,
-                    Role = string.IsNullOrEmpty(registerationRequestDTO.Role) ? "Customer" : registerationRequestDTO.Role,
-                    CreatedDate = DateTime.Now
+                    NormalizedEmail = registerationRequestDTO.Email.ToUpper(),
+                    EmailConfirmed = true
                 };
 
-                await _db.Users.AddAsync(user);
-                await _db.SaveChangesAsync();
+                var result = await _userManager.CreateAsync(user, registerationRequestDTO.Password);
 
-                return _mapper.Map<UserDTO>(user);
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    throw new InvalidOperationException($"User registration failed: {errors}");
+                }
+
+                // Assign role to user
+                var role = string.IsNullOrEmpty(registerationRequestDTO.Role) ? "Customer" : registerationRequestDTO.Role;
+                
+                // Check if role exists, if not create it
+                if (!await _roleManager.RoleExistsAsync(role))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole(role));
+                }
+
+                await _userManager.AddToRoleAsync(user, role);
+
+                var userDto = _mapper.Map<UserDTO>(user);
+                userDto.Role = role;
+                
+                return userDto;
             }
             catch (Exception ex)
             {
