@@ -41,7 +41,7 @@ builder.Services.AddAuthentication(option =>
 
 });
 
-
+builder.Services.AddResponseCaching();
 builder.Services.AddApiVersioning(options =>
 {
     options.AssumeDefaultVersionWhenUnspecified = true;

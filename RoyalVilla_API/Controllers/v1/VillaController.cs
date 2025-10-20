@@ -29,6 +29,7 @@ namespace RoyalVilla_API.Controllers.v1
 
 
         [HttpGet]
+        [ResponseCache(Duration =30)]
         //[Authorize(Roles ="Admin")]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<VillaDTO>>),StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
@@ -41,6 +42,7 @@ namespace RoyalVilla_API.Controllers.v1
         }
 
         [HttpGet("{id:int}")]
+        [ResponseCache(Duration = 30)]
         //[AllowAnonymous]
         [ProducesResponseType(typeof(ApiResponse<VillaDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
