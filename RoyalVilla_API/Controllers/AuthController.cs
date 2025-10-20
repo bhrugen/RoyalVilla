@@ -73,7 +73,7 @@ namespace RoyalVilla_API.Controllers
 
                 if (loginResponse == null)
                 {
-                    return BadRequest(ApiResponse<object>.BadRequest("Login failed"));
+                    return BadRequest(ApiResponse<object>.BadRequest("Login failed. Please check your credentials."));
                 }
 
                 //auth service 

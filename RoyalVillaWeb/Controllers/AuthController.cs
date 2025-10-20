@@ -50,6 +50,11 @@ namespace RoyalVillaWeb.Controllers
                     HttpContext.Session.SetString(SD.SessionToken, model.Token);
                     return RedirectToAction("Index", "Home");
                 }
+                else
+                {
+                    TempData["error"] = response.Message;
+                    return View(loginRequestDTO);
+                }
             }
             catch (Exception ex)
             {
