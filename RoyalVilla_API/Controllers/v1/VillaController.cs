@@ -123,8 +123,39 @@ namespace RoyalVilla_API.Controllers.v1
                 .Take(pageSize)
                 .ToListAsync();
 
-            var dtoResponseVilla = _mapper.Map<List<VillaDTO>>(villas);
-            var response = ApiResponse<IEnumerable<VillaDTO>>.Ok(dtoResponseVilla, "Villas retrieved successfully");
+            var villaDTOs = _mapper.Map<List<VillaDTO>>(villas);
+
+            // Calculate pagination metadata
+            var totalCount = await villasQuery.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+            var hasNextPage = page < totalPages;
+            var hasPreviousPage = page > 1;
+
+            // Build comprehensive message
+            var messageBuilder = new System.Text.StringBuilder();
+            messageBuilder.Append($"Successfully retrieved {villaDTOs.Count} villa(s)");
+            messageBuilder.Append($" (Page {page} of {totalPages}, {totalCount} total)");
+
+            if (!string.IsNullOrWhiteSpace(filterBy) && !string.IsNullOrWhiteSpace(filterQuery))
+            {
+                messageBuilder.Append($" filtered by {filterBy}: '{filterQuery}'");
+            }
+
+            if (!string.IsNullOrWhiteSpace(sortBy))
+            {
+                messageBuilder.Append($" sorted by {sortBy} ({sortOrder?.ToLower() ?? "asc"})");
+            }
+
+            // Create response with pagination metadata
+            var response = ApiResponse<IEnumerable<VillaDTO>>.Ok(villaDTOs, messageBuilder.ToString());
+
+            // Add pagination metadata to response headers for better API design
+            Response.Headers.Append("X-Pagination-CurrentPage", page.ToString());
+            Response.Headers.Append("X-Pagination-PageSize", pageSize.ToString());
+            Response.Headers.Append("X-Pagination-TotalCount", totalCount.ToString());
+            Response.Headers.Append("X-Pagination-TotalPages", totalPages.ToString());
+            Response.Headers.Append("X-Pagination-HasNext", hasNextPage.ToString().ToLower());
+            Response.Headers.Append("X-Pagination-HasPrevious", hasPreviousPage.ToString().ToLower());
             return Ok(response);
         }
 
