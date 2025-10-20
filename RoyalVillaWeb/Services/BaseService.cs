@@ -50,7 +50,16 @@ namespace RoyalVillaWeb.Services
 
                 var apiResponse = await client.SendAsync(message);
 
-                return await apiResponse.Content.ReadFromJsonAsync<T>(JsonOptions);
+                // Always try to read the response content, regardless of status code
+                // The API returns ApiResponse for both success and error cases
+                var content = await apiResponse.Content.ReadAsStringAsync();
+                
+                if (!string.IsNullOrEmpty(content))
+                {
+                    return JsonSerializer.Deserialize<T>(content, JsonOptions);
+                }
+
+                return default;
 
             }
             catch (Exception ex)

@@ -35,6 +35,7 @@ namespace RoyalVillaWeb.Controllers
             try
             {
                 var response = await _authService.LoginAsync<ApiResponse<LoginResponseDTO>>(loginRequestDTO);
+                
                 if (response != null && response.Success && response.Data != null)
                 {
                     LoginResponseDTO model = response.Data;
@@ -43,12 +44,17 @@ namespace RoyalVillaWeb.Controllers
                     var jwt = handler.ReadJwtToken(model.Token);
 
                     var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
-                    identity.AddClaim(new Claim(ClaimTypes.Name, jwt.Claims.FirstOrDefault(u => u.Type == "email").Value));
-                    identity.AddClaim(new Claim(ClaimTypes.Role, jwt.Claims.FirstOrDefault(u => u.Type == "role").Value));
+                    identity.AddClaim(new Claim(ClaimTypes.Name, jwt.Claims.FirstOrDefault(u => u.Type == "email")?.Value ?? ""));
+                    identity.AddClaim(new Claim(ClaimTypes.Role, jwt.Claims.FirstOrDefault(u => u.Type == "role")?.Value ?? "Customer"));
                     var principal = new ClaimsPrincipal(identity);
                     await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,principal);
                     HttpContext.Session.SetString(SD.SessionToken, model.Token);
                     return RedirectToAction("Index", "Home");
+                }
+                else
+                {
+                    // Handle unsuccessful login (401 Unauthorized or other errors)
+                    TempData["error"] = response?.Message ?? "Invalid email or password. Please try again.";
                 }
             }
             catch (Exception ex)
@@ -56,7 +62,7 @@ namespace RoyalVillaWeb.Controllers
                 TempData["error"] = $"An error occurred: {ex.Message}";
             }
 
-            return View();
+            return View(loginRequestDTO);
         }
 
 
