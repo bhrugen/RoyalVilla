@@ -107,9 +107,27 @@ namespace RoyalVilla_API.Controllers.v2
             //page 5, pagesize 10
             var skip = (page - 1) * pageSize;
 
-                var villas = await villasQuery.Skip(skip).Take(pageSize).ToListAsync();
+            var villas = await villasQuery.Skip(skip).Take(pageSize).ToListAsync();
             var dtoResponseVilla = _mapper.Map<List<VillaDTO>>(villas);
-            var response = ApiResponse<IEnumerable<VillaDTO>>.Ok(dtoResponseVilla, "Villas retrieved successfully");
+            var totalCount = await villasQuery.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+            var messageBuilder = new System.Text.StringBuilder();
+
+
+            messageBuilder.Append($"Successfully retrieved {dtoResponseVilla.Count} villa(s)");
+            messageBuilder.Append($"(Page {page} of {totalPages}, {totalCount} total records");
+            if (!string.IsNullOrEmpty(filterQuery) && !string.IsNullOrEmpty(filterBy))
+            {
+                messageBuilder.Append($" filtered by {filterBy}: '{filterQuery}'");
+            }
+            if (!string.IsNullOrEmpty(sortBy))
+            {
+                messageBuilder.Append($" sorted by {sortBy}: '{sortOrder?.ToLower() ?? "asc"}'");
+            }
+
+
+            var response = ApiResponse<IEnumerable<VillaDTO>>.Ok(dtoResponseVilla, messageBuilder.ToString());
             return Ok(response);
         }
 
