@@ -43,8 +43,10 @@ namespace RoyalVillaWeb.Controllers
                     return View(loginRequestDTO);
                 }
 
-                // Handle successful login
-                if (response.Success && response.Data != null && !string.IsNullOrEmpty(response.Data.AccessToken))
+                // Handle successful login - check for BOTH tokens
+                if (response.Success && response.Data != null && 
+                    !string.IsNullOrEmpty(response.Data.AccessToken) && 
+                    !string.IsNullOrEmpty(response.Data.RefreshToken))
                 {
                     // Extract claims from JWT token using TokenProvider
                     var principal = _tokenProvider.GetPrincipalFromToken(response.Data.AccessToken);
@@ -54,8 +56,8 @@ namespace RoyalVillaWeb.Controllers
                         // Sign in the user with cookie authentication
                         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
                         
-                        // Store token in session using TokenProvider
-                        _tokenProvider.SetToken(response.Data.AccessToken);
+                        // ✅ Store BOTH access and refresh tokens
+                        _tokenProvider.SetToken(response.Data.AccessToken, response.Data.RefreshToken);
                         
                         TempData["success"] = "Login successful!";
                         return RedirectToAction("Index", "Home");
@@ -133,7 +135,7 @@ namespace RoyalVillaWeb.Controllers
             // Clear authentication cookie
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             
-            // Clear token from session using TokenProvider
+            // Clear tokens from session using TokenProvider
             _tokenProvider.ClearToken();
             
             // Clear session

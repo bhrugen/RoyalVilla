@@ -8,8 +8,8 @@ namespace RoyalVillaWeb.Services
     {
         private const string APIEndpoint = $"/api/{SD.CurrentAPIVersion}/villa";
 
-        public VillaService(IHttpClientFactory httpClient, ITokenProvider tokenProvider)
-            : base(httpClient, tokenProvider)
+        public VillaService(IHttpClientFactory httpClient, ITokenProvider tokenProvider, IHttpContextAccessor httpContextAccessor)
+            : base(httpClient, tokenProvider, httpContextAccessor)
         {
         }
 

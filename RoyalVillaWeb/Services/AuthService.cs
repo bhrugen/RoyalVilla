@@ -8,8 +8,8 @@ namespace RoyalVillaWeb.Services
     {
         private const string APIEndpoint = "/api/auth";
 
-        public AuthService(IHttpClientFactory httpClient, ITokenProvider tokenProvider)
-            : base(httpClient, tokenProvider)
+        public AuthService(IHttpClientFactory httpClient, ITokenProvider tokenProvider, IHttpContextAccessor httpContextAccessor)
+            : base(httpClient, tokenProvider, httpContextAccessor)
         {
         }
 
@@ -31,6 +31,16 @@ namespace RoyalVillaWeb.Services
                 Data = registerationRequestDTO,
                 Url = APIEndpoint + "/register",
             }, withBearer: false);  // ✅ No token needed - user doesn't have an account yet
+        }
+
+        public Task<T?> RefreshTokenAsync<T>(RefreshTokenRequestDTO refreshTokenRequest)
+        {
+            return SendAsync<T>(new ApiRequest
+            {
+                ApiType = SD.ApiType.POST,
+                Data = refreshTokenRequest,
+                Url = APIEndpoint + "/refresh-token",
+            }, withBearer: false);  // ✅ No bearer - using refresh token in body
         }
     }
 }

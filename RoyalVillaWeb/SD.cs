@@ -10,6 +10,7 @@
             DELETE
         }
         public const string SessionToken = "JWTToken";
+        public const string SessionRefreshToken = "RefreshToken";
         public const string CurrentAPIVersion = "v2";
         public const string APIBaseUrl = "https://localhost:7297";
         
