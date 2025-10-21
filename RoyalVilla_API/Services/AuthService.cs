@@ -53,21 +53,16 @@ namespace RoyalVilla_API.Services
 
                 if (!isValid)
                 {
-                    return null; //invalid passowrd
+                    return null; //invalid password
                 }
 
-                //generate TOKEN
+                //generate TOKEN with all user claims embedded
                 var token = await GenerateJwtToken(user);
-                var roles = await _userManager.GetRolesAsync(user);
-                LoginResponseDTO loginResponseDTO= new LoginResponseDTO
+                
+                return new LoginResponseDTO
                 {
-                    UserDTO = _mapper.Map<UserDTO>(user),
                     Token = token
                 };
-
-                loginResponseDTO.UserDTO.Role = roles.FirstOrDefault()??"Customer";
-                return loginResponseDTO;
-                
             }
             catch (Exception ex)
             {
