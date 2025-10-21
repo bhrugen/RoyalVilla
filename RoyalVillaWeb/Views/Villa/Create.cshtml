@@ -10,7 +10,7 @@
                     <span class="fw-semibold h4 pt-1">Create Villa</span>
                 </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" enctype="multipart/form-data">
 
                         <!-- Villa Name -->
                         <div class="mb-3">
@@ -20,6 +20,7 @@
                             <input asp-for="Name" class="form-control" placeholder="Enter villa name" />
                             <span asp-validation-for="Name" class="text-danger small"></span>
                         </div>
+                        
                         <!-- Details -->
                         <div class="mb-3">
                             <label asp-for="Details" class="form-label">Description</label>
@@ -27,6 +28,7 @@
                                       placeholder="Describe the villa"></textarea>
                             <span  asp-validation-for="Details" class="text-danger small"></span>
                         </div>
+                        
                         <!-- Rate and Occupancy -->
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -53,11 +55,26 @@
                             <span asp-validation-for="Sqft" class="text-danger small"></span>
                         </div>
 
-                        <!-- Image URL -->
+                        <!-- Image Upload -->
                         <div class="mb-4">
-                            <label asp-for="ImageUrl" class="form-label">Image URL</label>
+                            <label asp-for="Image" class="form-label">Villa Image</label>
+                            <input asp-for="Image" type="file" class="form-control" accept="image/*" 
+                                   onchange="previewImage(this)" />
+                            <span asp-validation-for="Image" class="text-danger small"></span>
+                            <small class="form-text text-muted">Supported formats: JPG, JPEG, PNG, GIF, WEBP (Max 5MB)</small>
+                            
+                            <!-- Image Preview -->
+                            <div id="imagePreview" class="mt-3" style="display:none;">
+                                <img id="preview" class="img-thumbnail" style="max-width: 300px; max-height: 300px;" />
+                            </div>
+                        </div>
+
+                        <!-- Image URL (Optional - for external images) -->
+                        <div class="mb-4">
+                            <label asp-for="ImageUrl" class="form-label">Or, Image URL (Optional)</label>
                             <input asp-for="ImageUrl" class="form-control" placeholder="https://example.com/image.jpg" />
                             <span asp-validation-for="ImageUrl" class="text-danger small"></span>
+                            <small class="form-text text-muted">If you upload an image above, this field will be ignored</small>
                         </div>
 
                         <!-- Action Buttons -->
@@ -76,4 +93,23 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        function previewImage(input) {
+            const preview = document.getElementById('preview');
+            const previewContainer = document.getElementById('imagePreview');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                previewContainer.style.display = 'none';
+            }
+        }
+    </script>
 }

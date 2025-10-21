@@ -130,7 +130,9 @@ builder.Services.AddAutoMapper(o =>
     o.CreateMap<VillaAmentiesDTO, VillaAmenities>();
 });
 
+// Register services
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IFileService, FileService>();
 
 
 var app = builder.Build();
@@ -162,6 +164,10 @@ if (app.Environment.IsDevelopment())
 }
 app.UseCors(o => o.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod().WithExposedHeaders("*"));
 app.UseHttpsRedirection();
+
+// Enable serving static files (for uploaded images)
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -8,7 +8,7 @@
             <h2 class="mb-1">Villa Management</h2>
             <p class="text-muted mb-0">Manage your villa listings</p>
         </div>
-        <a asp-controller="villa" asp-action="create"class="btn btn-success">
+        <a asp-controller="villa" asp-action="create" class="btn btn-success">
             <i class="bi bi-plus-circle me-2"></i>Add New Villa
         </a>
     </div>
@@ -29,13 +29,13 @@
         </div>
     }
 
-     @if (Model == null || !Model.Any())
+    @if (Model == null || !Model.Any())
     {
         <div class="alert alert-info text-center">
             <i class="bi bi-info-circle fs-1 d-block mb-3"></i>
             <h5>No Villas Available</h5>
             <p class="mb-3">Get started by creating your first villa.</p>
-            <a href="#" class="btn btn-primary">
+            <a asp-action="create" class="btn btn-primary">
                 <i class="bi bi-plus-circle me-2"></i>Create Villa
             </a>
         </div>
@@ -56,7 +56,6 @@
                                     <th>Rate</th>
                                     <th>Occupancy</th>
                                     <th>Sqft</th>
-
                                     <th class="text-center">Actions</th>
                                 </tr>
                             </thead>
@@ -67,12 +66,16 @@
                                         <td>
                                             @if (!string.IsNullOrEmpty(villa.ImageUrl))
                                             {
-                                                <img src="@villa.ImageUrl" class="rounded" style="width: 60px; height: 45px; object-fit: cover;">
+                                                <img src="@RoyalVillaWeb.SD.GetImageUrl(villa.ImageUrl)" 
+                                                     alt="@villa.Name"
+                                                     class="rounded" 
+                                                     style="width: 80px; height: 60px; object-fit: cover;"
+                                                     onerror="this.src='/images/placeholder-villa.jpg'">
                                             }
                                             else
                                             {
                                                 <div class="bg-secondary rounded d-flex align-items-center justify-content-center text-white"
-                                                     style="width: 60px; height: 45px;">
+                                                     style="width: 80px; height: 60px;">
                                                     <i class="bi bi-image"></i>
                                                 </div>
                                             }
@@ -101,10 +104,8 @@
                                         <td class="align-middle">
                                             <i class="bi bi-rulers me-1"></i>@villa.Sqft
                                         </td>
-
                                         <td class="align-middle text-center">
                                             <div class="btn-group btn-group-sm">
-
                                                 <a asp-action="edit" asp-route-id="@villa.Id"
                                                    class="btn btn-outline-warning" title="Edit">
                                                     <i class="bi bi-pencil"></i>
@@ -123,6 +124,7 @@
                 </div>
             </div>
         }
+        
         <!-- Summary -->
         <div class="row mt-5 mb-5">
             <div class="col-12">
@@ -163,9 +165,7 @@
                 </div>
             </div>
         </div>
-      
     }
-    
 </div>
 
 <style>

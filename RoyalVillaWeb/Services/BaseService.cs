@@ -32,10 +32,9 @@ namespace RoyalVillaWeb.Services
                 var client = _httpClient.CreateClient("RoyalVillaAPI");
                 var message = new HttpRequestMessage
                 {
-                    RequestUri = new Uri(apiRequest.Url,uriKind:UriKind.Relative),
+                    RequestUri = new Uri(apiRequest.Url, uriKind: UriKind.Relative),
                     Method = GetHttpMethod(apiRequest.ApiType),
                 };
-
 
                 var token = _httpContextAccessor.HttpContext?.Session?.GetString(SD.SessionToken);
                 if (!string.IsNullOrEmpty(token))
@@ -43,15 +42,23 @@ namespace RoyalVillaWeb.Services
                     message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 }
 
-                if(apiRequest.Data!=null)
+                if (apiRequest.Data != null)
                 {
-                    message.Content = JsonContent.Create(apiRequest.Data,options: JsonOptions);
+                    // Check if data is MultipartFormDataContent (for file uploads)
+                    if (apiRequest.Data is MultipartFormDataContent multipartContent)
+                    {
+                        message.Content = multipartContent;
+                    }
+                    else
+                    {
+                        // Use JSON for regular data
+                        message.Content = JsonContent.Create(apiRequest.Data, options: JsonOptions);
+                    }
                 }
 
                 var apiResponse = await client.SendAsync(message);
 
                 return await apiResponse.Content.ReadFromJsonAsync<T>(JsonOptions);
-
             }
             catch (Exception ex)
             {
@@ -60,7 +67,7 @@ namespace RoyalVillaWeb.Services
             }
         }
 
-        private static HttpMethod GetHttpMethod(SD.ApiType apiType) 
+        private static HttpMethod GetHttpMethod(SD.ApiType apiType)
         {
             return apiType switch
             {
@@ -70,6 +77,5 @@ namespace RoyalVillaWeb.Services
                 _ => HttpMethod.Get
             };
         }
-
     }
 }

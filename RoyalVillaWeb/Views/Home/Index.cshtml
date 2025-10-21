@@ -96,75 +96,83 @@
     {
         @if (Model.Count() > 0)
         {
-            
-        
-        <!-- Villa Cards Grid -->
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-            @foreach (var villa in Model)
-            {
-                <div class="col">
-                    <div class="card h-100 shadow-sm hover-shadow transition">
-                        <!-- Villa Image -->
-                        <div class="position-relative overflow-hidden">
-                            @if (!string.IsNullOrEmpty(villa.ImageUrl))
-                            {
-                                <img src="@villa.ImageUrl" class="card-img-top villa-image" style="height: 250px; object-fit: cover;">
-                            }
-                            else
-                            {
-                                <div class="card-img-top bg-gradient-primary d-flex align-items-center justify-content-center" style="height: 250px;">
-                                    <i class="bi bi-image text-white" style="font-size: 4rem;"></i>
-                                </div>
-                            }
-
-                           
-                            <!-- Price Badge -->
-                            <div class="position-absolute top-0 end-0 m-3">
-                                <span class="badge bg-success fs-6 px-3 py-2 rounded-pill shadow">
-                                    $@villa.Rate.ToString("N0")/night
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Card Body -->
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title text-primary fw-bold mb-3">@villa.Name</h5>
-
-                            <p class="card-text text-muted flex-grow-1">
-                                @villa.Details
-                            </p>
-
-                            <!-- Villa Details -->
-                            <div class="mb-3">
-                                <div class="row g-2">
-                                    <div class="col-6">
-                                        <div class="d-flex align-items-center">
-                                            <i class="bi bi-people-fill m-1"></i>
-                                            <small class="text-muted">@villa.Occupancy Guests</small>
-                                        </div>
+            <!-- Villa Cards Grid -->
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                @foreach (var villa in Model)
+                {
+                    <div class="col">
+                        <div class="card h-100 shadow-sm hover-shadow transition">
+                            <!-- Villa Image -->
+                            <div class="position-relative overflow-hidden">
+                                @if (!string.IsNullOrEmpty(villa.ImageUrl))
+                                {
+                                    <img src="@RoyalVillaWeb.SD.GetImageUrl(villa.ImageUrl)" 
+                                         alt="@villa.Name"
+                                         class="card-img-top villa-image" 
+                                         style="height: 250px; object-fit: cover;"
+                                         onerror="this.src='/images/placeholder-villa.jpg'">
+                                }
+                                else
+                                {
+                                    <div class="card-img-top bg-gradient-primary d-flex align-items-center justify-content-center" style="height: 250px;">
+                                        <i class="bi bi-image text-white" style="font-size: 4rem;"></i>
                                     </div>
-                                    <div class="col-6">
-                                        <div class="d-flex align-items-center float-end">
-                                            <i class="bi bi-house  m-1"></i>
-                                            <small class="text-muted">@villa.Sqft sqft</small>
-                                        </div>
-                                    </div>
+                                }
+
+                                <!-- Price Badge -->
+                                <div class="position-absolute top-0 end-0 m-3">
+                                    <span class="badge bg-success fs-6 px-3 py-2 rounded-pill shadow">
+                                        $@villa.Rate.ToString("N0")/night
+                                    </span>
                                 </div>
                             </div>
 
-                            <!-- Action Buttons -->
-                            <div class="d-grid gap-2">
-                                <a href="mailto:hello@dotnetmastery.com?"
-                                class="btn btn-primary btn-hover">
-                                    <i class="bi bi-envelope"></i> Contact Us
-                                </a>
+                            <!-- Card Body -->
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title text-primary fw-bold mb-3">@villa.Name</h5>
+
+                                <p class="card-text text-muted flex-grow-1">
+                                    @if (string.IsNullOrEmpty(villa.Details))
+                                    {
+                                        <span class="fst-italic">No description available</span>
+                                    }
+                                    else
+                                    {
+                                        @(villa.Details.Length > 100 ? villa.Details.Substring(0, 100) + "..." : villa.Details)
+                                    }
+                                </p>
+
+                                <!-- Villa Details -->
+                                <div class="mb-3">
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-people-fill m-1"></i>
+                                                <small class="text-muted">@villa.Occupancy Guests</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="d-flex align-items-center float-end">
+                                                <i class="bi bi-house  m-1"></i>
+                                                <small class="text-muted">@villa.Sqft sqft</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="d-grid gap-2">
+                                    <a href="mailto:hello@dotnetmastery.com"
+                                       class="btn btn-primary btn-hover">
+                                        <i class="bi bi-envelope"></i> Contact Us
+                                    </a>
+                                </div>
                             </div>
                         </div>
-
                     </div>
-                </div>
-            }
-        </div>
+                }
+            </div>
+
             <!-- Statistics Section -->
             <div class="row mt-5 mb-5">
                 <div class="col-12">
@@ -207,8 +215,6 @@
             </div>
         }
     }
-   
-    
 </div>
 
 <!-- Custom Styles -->

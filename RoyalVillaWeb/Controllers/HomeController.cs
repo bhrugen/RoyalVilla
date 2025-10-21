@@ -15,7 +15,7 @@ namespace RoyalVillaWeb.Controllers
         private readonly IVillaService _villaService;
         private readonly IMapper _mapper;
 
-        public HomeController(IVillaService villaService, IMapper mapper )
+        public HomeController(IVillaService villaService, IMapper mapper)
         {
             _mapper = mapper;
             _villaService = villaService;
@@ -26,10 +26,14 @@ namespace RoyalVillaWeb.Controllers
             List<VillaDTO> villaList = new();
             try
             {
-                var response = await _villaService.GetAllAsync<ApiResponse<List<VillaDTO>>>();
-                if(response!=null && response.Success && response.Data != null)
+                var response = await _villaService.GetAllAsync<ApiResponse<IEnumerable<VillaDTO>>>();
+                if (response != null && response.Success && response.Data != null)
                 {
-                    villaList= response.Data;
+                    villaList = response.Data.ToList();
+                }
+                else
+                {
+                    TempData["error"] = response?.Message ?? "Failed to retrieve villas";
                 }
             }
             catch (Exception ex)

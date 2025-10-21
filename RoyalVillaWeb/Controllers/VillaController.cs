@@ -16,7 +16,7 @@ namespace RoyalVillaWeb.Controllers
         private readonly IVillaService _villaService;
         private readonly IMapper _mapper;
 
-        public VillaController(IVillaService villaService, IMapper mapper )
+        public VillaController(IVillaService villaService, IMapper mapper)
         {
             _mapper = mapper;
             _villaService = villaService;
@@ -27,10 +27,10 @@ namespace RoyalVillaWeb.Controllers
             List<VillaDTO> villaList = new();
             try
             {
-                var response = await _villaService.GetAllAsync<ApiResponse<List<VillaDTO>>>();
-                if(response!=null && response.Success && response.Data != null)
+                var response = await _villaService.GetAllAsync<ApiResponse<IEnumerable<VillaDTO>>>();
+                if (response != null && response.Success && response.Data != null)
                 {
-                    villaList= response.Data;
+                    villaList = response.Data.ToList();
                 }
             }
             catch (Exception ex)
@@ -41,7 +41,7 @@ namespace RoyalVillaWeb.Controllers
             return View(villaList);
         }
 
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View();
@@ -64,6 +64,10 @@ namespace RoyalVillaWeb.Controllers
                 {
                     TempData["success"] = "Villa created successfully";
                     return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+                    TempData["error"] = response?.Message ?? "Failed to create villa";
                 }
             }
             catch (Exception ex)
@@ -89,28 +93,9 @@ namespace RoyalVillaWeb.Controllers
                 {
                     return View(_mapper.Map<VillaUpdateDTO>(response.Data));
                 }
-            }
-            catch (Exception ex)
-            {
-                TempData["error"] = $"An error occurred: {ex.Message}";
-            }
-
-
-            return View();
-        }
-
-        [HttpPost]
-        [Authorize(Roles = "Admin")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(VillaUpdateDTO updateDTO)
-        {
-
-            try
-            {
-                var response = await _villaService.UpdateAsync<ApiResponse<object>>(updateDTO);
-                if (response != null && response.Success && response.Data != null)
+                else
                 {
-                    TempData["success"] = "Villa updated successfully";
+                    TempData["error"] = response?.Message ?? "Villa not found";
                 }
             }
             catch (Exception ex)
@@ -119,6 +104,37 @@ namespace RoyalVillaWeb.Controllers
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(VillaUpdateDTO updateDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(updateDTO);
+            }
+
+            try
+            {
+                var response = await _villaService.UpdateAsync<ApiResponse<VillaDTO>>(updateDTO);
+                if (response != null && response.Success)
+                {
+                    TempData["success"] = "Villa updated successfully";
+                    return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+                    TempData["error"] = response?.Message ?? "Failed to update villa";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = $"An error occurred: {ex.Message}";
+            }
+
+            return View(updateDTO);
         }
 
         [Authorize(Roles = "Admin")]
@@ -136,28 +152,9 @@ namespace RoyalVillaWeb.Controllers
                 {
                     return View(response.Data);
                 }
-            }
-            catch (Exception ex)
-            {
-                TempData["error"] = $"An error occurred: {ex.Message}";
-            }
-
-
-            return View();
-        }
-
-        [HttpPost]
-        [Authorize(Roles = "Admin")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(VillaDTO villaDTO)
-        {
-            
-            try
-            {
-                var response = await _villaService.DeleteAsync<ApiResponse<object>>(villaDTO.Id);
-                if (response != null && response.Success && response.Data != null)
+                else
                 {
-                    TempData["success"] = "Villa deleted successfully";
+                    TempData["error"] = response?.Message ?? "Villa not found";
                 }
             }
             catch (Exception ex)
@@ -168,5 +165,29 @@ namespace RoyalVillaWeb.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(VillaDTO villaDTO)
+        {
+            try
+            {
+                var response = await _villaService.DeleteAsync<ApiResponse<object>>(villaDTO.Id);
+                if (response != null && response.Success)
+                {
+                    TempData["success"] = "Villa deleted successfully";
+                }
+                else
+                {
+                    TempData["error"] = response?.Message ?? "Failed to delete villa";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = $"An error occurred: {ex.Message}";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

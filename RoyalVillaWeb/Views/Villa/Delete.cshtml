@@ -10,68 +10,72 @@
                     <span class="fw-semibold h4 pt-1">Delete Villa</span>
                 </div>
                 <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Warning!</strong> This action cannot be undone. The villa and its associated image will be permanently deleted.
+                    </div>
+
                     <form method="post">
                         <input type="hidden" asp-for="Id" />
+
+                        <!-- Villa Image -->
+                        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                        {
+                            <div class="mb-4 text-center">
+                                <label class="form-label fw-bold">Villa Image</label>
+                                <div>
+                                    <img src="@RoyalVillaWeb.SD.GetImageUrl(Model.ImageUrl)" 
+                                         alt="@Model.Name" 
+                                         class="img-fluid rounded shadow" 
+                                         style="max-height: 400px;"
+                                         onerror="this.src='/images/placeholder-villa.jpg'">
+                                </div>
+                            </div>
+                        }
+
                         <!-- Villa Name -->
                         <div class="mb-3">
-                            <label asp-for="Name" class="form-label">
-                                Villa Name <span class="text-danger">*</span>
-                            </label>
-                            <input asp-for="Name" disabled class="form-control" placeholder="Enter villa name" />
+                            <label asp-for="Name" class="form-label">Villa Name</label>
+                            <input asp-for="Name" disabled class="form-control" />
                         </div>
+
                         <!-- Details -->
                         <div class="mb-3">
                             <label asp-for="Details" class="form-label">Description</label>
-                            <textarea asp-for="Details" disabled class="form-control" rows="4"
-                                      placeholder="Describe the villa"></textarea>
+                            <textarea asp-for="Details" disabled class="form-control" rows="4"></textarea>
                         </div>
+
                         <!-- Rate and Occupancy -->
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label asp-for="Rate" class="form-label">
-                                    Nightly Rate <span class="text-danger">*</span>
-                                </label>
+                                <label asp-for="Rate" class="form-label">Nightly Rate</label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input asp-for="Rate" disabled type="number" step="0.01" class="form-control" placeholder="0.00" />
+                                    <input asp-for="Rate" disabled type="number" step="0.01" class="form-control" />
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label asp-for="Occupancy" class="form-label">Max Occupancy</label>
-                                <input asp-for="Occupancy" disabled type="number" class="form-control" placeholder="Number of guests" />
+                                <input asp-for="Occupancy" disabled type="number" class="form-control" />
                             </div>
                         </div>
 
                         <!-- Sqft -->
                         <div class="mb-3">
                             <label asp-for="Sqft" class="form-label">Square Feet</label>
-                            <input asp-for="Sqft" disabled type="number" class="form-control" placeholder="Area in sqft" />
+                            <input asp-for="Sqft" disabled type="number" class="form-control" />
                         </div>
-
-                        <!-- Image URL -->
-                        <div class="mb-4">
-                            <label asp-for="ImageUrl" class="form-label">Image URL</label>
-                            <input asp-for="ImageUrl" disabled class="form-control" placeholder="https://example.com/image.jpg" />
-                        </div>
-                        @if (!string.IsNullOrEmpty(Model.ImageUrl))
-                        {
-                            <div class="text-center mb-4">
-                                <img src="@Model.ImageUrl" alt="@Model.Name" class="img-fluid rounded" style="max-height: 350px;">
-                            </div>
-                        }
 
                         <!-- Action Buttons -->
-                        <div class="d-flex gap-2 justify-content-end">
-                            <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                        <div class="d-flex gap-2 justify-content-end mt-4">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="bi bi-x-circle me-2"></i>Cancel
+                            </a>
                             <button type="submit" class="btn btn-danger">
-                                <i class="bi bi-check me-2"></i>Delete Villa
+                                <i class="bi bi-trash me-2"></i>Confirm Delete
                             </button>
                         </div>
-
-
-                       
                     </form>
-
                 </div>
             </div>
         </div>

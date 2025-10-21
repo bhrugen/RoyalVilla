@@ -10,7 +10,9 @@
                     <span class="fw-semibold h4 pt-1">Update Villa</span>
                 </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" enctype="multipart/form-data">
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="ImageUrl" />
 
                         <!-- Villa Name -->
                         <div class="mb-3">
@@ -20,6 +22,7 @@
                             <input asp-for="Name" class="form-control" placeholder="Enter villa name" />
                             <span asp-validation-for="Name" class="text-danger small"></span>
                         </div>
+                        
                         <!-- Details -->
                         <div class="mb-3">
                             <label asp-for="Details" class="form-label">Description</label>
@@ -27,6 +30,7 @@
                                       placeholder="Describe the villa"></textarea>
                             <span asp-validation-for="Details" class="text-danger small"></span>
                         </div>
+                        
                         <!-- Rate and Occupancy -->
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -53,20 +57,40 @@
                             <span asp-validation-for="Sqft" class="text-danger small"></span>
                         </div>
 
-                        <!-- Image URL -->
-                        <div class="mb-4">
-                            <label asp-for="ImageUrl" class="form-label">Image URL</label>
-                            <input asp-for="ImageUrl" class="form-control" placeholder="https://example.com/image.jpg" />
-                            <span asp-validation-for="ImageUrl" class="text-danger small"></span>
-                        </div>
-
+                        <!-- Current Image Display -->
                         @if (!string.IsNullOrEmpty(Model.ImageUrl))
                         {
-                            <div class="text-center mb-4">
-                                <label> Current Image</label> <br/>
-                                <img src="@Model.ImageUrl" alt="@Model.Name" class="img-fluid rounded" style="max-height: 350px;">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Current Image</label>
+                                <div class="text-center p-3 bg-light rounded">
+                                    <img src="@RoyalVillaWeb.SD.GetImageUrl(Model.ImageUrl)" 
+                                         alt="@Model.Name" 
+                                         class="img-fluid rounded shadow" 
+                                         style="max-height: 300px;"
+                                         onerror="this.src='/images/placeholder-villa.jpg'">
+                                </div>
                             </div>
                         }
+
+                        <!-- Upload New Image -->
+                        <div class="mb-4">
+                            <label asp-for="Image" class="form-label">Upload New Image (Optional)</label>
+                            <input asp-for="Image" type="file" class="form-control" accept="image/*" 
+                                   onchange="previewImage(this)" />
+                            <span asp-validation-for="Image" class="text-danger small"></span>
+                            <small class="form-text text-muted">
+                                Supported formats: JPG, JPEG, PNG, GIF, WEBP (Max 5MB). 
+                                Leave empty to keep current image.
+                            </small>
+                            
+                            <!-- New Image Preview -->
+                            <div id="imagePreview" class="mt-3" style="display:none;">
+                                <label class="form-label fw-bold">New Image Preview:</label>
+                                <div class="text-center p-3 bg-light rounded">
+                                    <img id="preview" class="img-thumbnail shadow" style="max-width: 300px; max-height: 300px;" />
+                                </div>
+                            </div>
+                        </div>
 
                         <!-- Action Buttons -->
                         <div class="d-flex gap-2 justify-content-end">
@@ -84,4 +108,23 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        function previewImage(input) {
+            const preview = document.getElementById('preview');
+            const previewContainer = document.getElementById('imagePreview');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                previewContainer.style.display = 'none';
+            }
+        }
+    </script>
 }
