@@ -6,10 +6,35 @@ using System.Text.Json;
 
 namespace RoyalVillaWeb.Services
 {
+    /*
+      Follows SOLID Principles ✅
+•	Single Responsibility: Each service has one reason to change
+•	Open/Closed: Can extend ITokenProvider without modifying services
+•	Liskov Substitution: Can swap TokenProvider implementations
+•	Interface Segregation: ITokenProvider has focused methods
+•	Dependency Inversion: Services depend on abstraction, not implementation
+
+    Single Source of Truth ✅
+•	All token operations go through TokenProvider
+•	No direct session access scattered across services
+•	Consistent token management
+
+
+     What This Means:
+Before:
+•	Services had mixed concerns (HTTP + Session access)
+•	Hard to test (mock multiple layers)
+•	Inconsistent token access
+After:
+•	Clean separation of concerns
+•	Easy to test (mock one interface)
+•	Consistent token access through TokenProvider
+•	All services use the same token management approach
+    */
     public class BaseService : IBaseService
     {
-        public IHttpClientFactory _httpClient { get; set; }
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IHttpClientFactory _httpClient;
+        private readonly ITokenProvider _tokenProvider;
 
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
@@ -18,11 +43,11 @@ namespace RoyalVillaWeb.Services
 
         public ApiResponse<object> ResponseModel { get; set; }
 
-        public BaseService(IHttpClientFactory httpClient, IHttpContextAccessor httpContextAccessor)
+        public BaseService(IHttpClientFactory httpClient, ITokenProvider tokenProvider)
         {
             this.ResponseModel = new();
             _httpClient = httpClient;
-            _httpContextAccessor = httpContextAccessor;
+            _tokenProvider = tokenProvider;
         }
 
         public async Task<T?> SendAsync<T>(ApiRequest apiRequest)
@@ -36,7 +61,8 @@ namespace RoyalVillaWeb.Services
                     Method = GetHttpMethod(apiRequest.ApiType),
                 };
 
-                var token = _httpContextAccessor.HttpContext?.Session?.GetString(SD.SessionToken);
+                // Use TokenProvider to get the token
+                var token = _tokenProvider.GetToken();
                 if (!string.IsNullOrEmpty(token))
                 {
                     message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);

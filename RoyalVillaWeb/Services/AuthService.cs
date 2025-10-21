@@ -6,10 +6,10 @@ namespace RoyalVillaWeb.Services
 {
     public class AuthService : BaseService, IAuthService
     {
-
         private const string APIEndpoint = "/api/auth";
-        public AuthService(IHttpClientFactory httpClient, IConfiguration configuration, IHttpContextAccessor httpContextAccessor) 
-            : base(httpClient,httpContextAccessor)
+
+        public AuthService(IHttpClientFactory httpClient, ITokenProvider tokenProvider)
+            : base(httpClient, tokenProvider)
         {
         }
 
@@ -19,7 +19,7 @@ namespace RoyalVillaWeb.Services
             {
                 ApiType = SD.ApiType.POST,
                 Data = loginRequestDTO,
-                Url = APIEndpoint+"/login",
+                Url = APIEndpoint + "/login",
             });
         }
 
@@ -29,7 +29,7 @@ namespace RoyalVillaWeb.Services
             {
                 ApiType = SD.ApiType.POST,
                 Data = registerationRequestDTO,
-                Url = APIEndpoint+ "/register",
+                Url = APIEndpoint + "/register",
             });
         }
     }
