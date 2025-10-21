@@ -107,7 +107,7 @@ namespace RoyalVilla_API.Services
             }
         }
 
-        public async Task<(bool IsValid, string? UserId, bool TokenReused)> ValidateRefreshTokenAsync(string refreshToken)
+        public async Task<(bool IsValid, string? UserId, string? TokenFamilyId, bool TokenReused)> ValidateRefreshTokenAsync(string refreshToken)
         {
             var storedToken = await _db.RefreshTokens
                 .FirstOrDefaultAsync(rt => rt.RefreshTokenValue == refreshToken);
@@ -115,7 +115,7 @@ namespace RoyalVilla_API.Services
             // Token doesn't exist in database
             if (storedToken == null)
             {
-                return (false, null, false);
+                return (false, null, null, false);
             }
 
             // CRITICAL SECURITY CHECK: Token Reuse Detection
@@ -125,24 +125,25 @@ namespace RoyalVilla_API.Services
             {
                 _logger.LogWarning(
                     "?? SECURITY ALERT: Refresh token reuse detected! " +
-                    "Token: {TokenId}, UserId: {UserId}. " +
-                    "Revoking all tokens for this user.",
-                    storedToken.Id, storedToken.UserId);
+                    "Token: {TokenId}, UserId: {UserId}, TokenFamily: {TokenFamilyId}. " +
+                    "Revoking all tokens in this family.",
+                    storedToken.Id, storedToken.UserId, storedToken.JwtTokenId);
 
-                // Revoke all tokens for this user as a security measure
-                await RevokeAllUserTokensAsync(storedToken.UserId);
+                // Revoke all tokens in THIS TOKEN FAMILY (not all user tokens)
+                // This allows user to stay logged in on other devices
+                await RevokeTokenFamilyAsync(storedToken.JwtTokenId, storedToken.UserId);
 
-                return (false, storedToken.UserId, true); // TokenReused = true
+                return (false, storedToken.UserId, storedToken.JwtTokenId, true); // TokenReused = true
             }
 
             // Token is expired
             if (storedToken.ExpiresAt < DateTime.UtcNow)
             {
-                return (false, storedToken.UserId, false);
+                return (false, storedToken.UserId, storedToken.JwtTokenId, false);
             }
 
             // Token is valid
-            return (true, storedToken.UserId, false);
+            return (true, storedToken.UserId, storedToken.JwtTokenId, false);
         }
 
         public async Task SaveRefreshTokenAsync(string userId, string jwtTokenId, string refreshToken, DateTime expiresAt)
@@ -174,14 +175,41 @@ namespace RoyalVilla_API.Services
             await _db.SaveChangesAsync();
             
             _logger.LogInformation(
-                "Refresh token revoked. TokenId: {TokenId}, UserId: {UserId}", 
-                storedToken.Id, storedToken.UserId);
+                "Refresh token revoked. TokenId: {TokenId}, UserId: {UserId}, TokenFamily: {TokenFamilyId}", 
+                storedToken.Id, storedToken.UserId, storedToken.JwtTokenId);
             
             return true;
         }
 
+        public async Task RevokeTokenFamilyAsync(string jwtTokenId, string userId)
+        {
+            // Revoke all tokens that share the same JwtTokenId (token family)
+            var tokenFamily = await _db.RefreshTokens
+                .Where(rt => rt.JwtTokenId == jwtTokenId && rt.UserId == userId && rt.IsValid)
+                .ToListAsync();
+
+            if (!tokenFamily.Any())
+            {
+                return;
+            }
+
+            foreach (var token in tokenFamily)
+            {
+                token.IsValid = false;
+            }
+
+            await _db.SaveChangesAsync();
+            
+            _logger.LogWarning(
+                "?? Token family revoked due to reuse detection. " +
+                "UserId: {UserId}, TokenFamilyId: {TokenFamilyId}, TokenCount: {Count}", 
+                userId, jwtTokenId, tokenFamily.Count);
+        }
+
         public async Task RevokeAllUserTokensAsync(string userId)
         {
+            // Revoke ALL tokens for a user (across all devices/sessions)
+            // This is more severe than RevokeTokenFamilyAsync
             var userTokens = await _db.RefreshTokens
                 .Where(rt => rt.UserId == userId && rt.IsValid)
                 .ToListAsync();
@@ -199,7 +227,8 @@ namespace RoyalVilla_API.Services
             await _db.SaveChangesAsync();
             
             _logger.LogWarning(
-                "?? All refresh tokens revoked for user. UserId: {UserId}, TokenCount: {Count}", 
+                "?? All refresh tokens revoked for user (all sessions). " +
+                "UserId: {UserId}, TokenCount: {Count}", 
                 userId, userTokens.Count);
         }
     }

@@ -103,23 +103,23 @@ namespace RoyalVilla_API.Services
                 }
 
                 // Validate refresh token with reuse detection
-                var (isValid, userId, tokenReused) = await _tokenService.ValidateRefreshTokenAsync(refreshTokenRequest.RefreshToken);
+                var (isValid, userId, tokenFamilyId, tokenReused) = await _tokenService.ValidateRefreshTokenAsync(refreshTokenRequest.RefreshToken);
                 
                 // 🚨 CRITICAL SECURITY: Token Reuse Detected
                 if (tokenReused)
                 {
                     _logger.LogWarning(
-                        "🚨 SECURITY BREACH: Token reuse attempt detected for UserId: {UserId}. " +
-                        "All user tokens have been revoked. User must login again.", 
-                        userId);
+                        "🚨 SECURITY BREACH: Token reuse attempt detected for UserId: {UserId}, TokenFamily: {TokenFamilyId}. " +
+                        "All tokens in this family have been revoked. User must login again.", 
+                        userId, tokenFamilyId);
                     
                     // Return null - user must re-authenticate
-                    // All tokens for this user have already been revoked in ValidateRefreshTokenAsync
+                    // All tokens in this family have already been revoked in ValidateRefreshTokenAsync
                     return null;
                 }
 
                 // Token is invalid or expired (but not reused)
-                if (!isValid || string.IsNullOrEmpty(userId))
+                if (!isValid || string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(tokenFamilyId))
                 {
                     return null;
                 }
@@ -136,23 +136,22 @@ namespace RoyalVilla_API.Services
 
                 // Generate new JWT access token
                 var accessToken = await _tokenService.GenerateJwtTokenAsync(user);
-                
-                // Extract JWT ID from new access token
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var jwtToken = tokenHandler.ReadJwtToken(accessToken);
-                var jwtTokenId = jwtToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
 
                 // Generate new refresh token
                 var newRefreshToken = await _tokenService.GenerateRefreshTokenAsync();
                 var refreshTokenExpiry = DateTime.UtcNow.AddDays(7);
 
-                // Save new refresh token
-                if (!string.IsNullOrEmpty(jwtTokenId))
-                {
-                    await _tokenService.SaveRefreshTokenAsync(user.Id, jwtTokenId, newRefreshToken, refreshTokenExpiry);
-                }
+                // 🔑 KEY CHANGE: Use the SAME tokenFamilyId to maintain the token chain
+                // This allows tracking of token families and selective revocation
+                await _tokenService.SaveRefreshTokenAsync(user.Id, tokenFamilyId, newRefreshToken, refreshTokenExpiry);
 
-                _logger.LogInformation("Token refreshed successfully for UserId: {UserId}", user.Id);
+                _logger.LogInformation(
+                    "Token refreshed successfully. UserId: {UserId}, TokenFamily: {TokenFamilyId}", 
+                    user.Id, tokenFamilyId);
+
+                // Extract token expiry from new access token
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var jwtToken = tokenHandler.ReadJwtToken(accessToken);
 
                 return new TokenDTO
                 {
