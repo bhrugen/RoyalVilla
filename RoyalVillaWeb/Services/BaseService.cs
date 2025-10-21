@@ -78,32 +78,9 @@ After:
             try
             {
                 var client = _httpClient.CreateClient("RoyalVillaAPI");
-                var message = new HttpRequestMessage
-                {
-                    RequestUri = new Uri(apiRequest.Url, uriKind: UriKind.Relative),
-                    Method = GetHttpMethod(apiRequest.ApiType),
-                };
-
-                // Use TokenProvider to get the access token
-                var accessToken = _tokenProvider.GetAccessToken();
-                if (withBearer && !string.IsNullOrEmpty(accessToken))
-                {
-                    message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                }
-
-                if (apiRequest.Data != null)
-                {
-                    // Check if data is MultipartFormDataContent (for file uploads)
-                    if (apiRequest.Data is MultipartFormDataContent multipartContent)
-                    {
-                        message.Content = multipartContent;
-                    }
-                    else
-                    {
-                        // Use JSON for regular data
-                        message.Content = JsonContent.Create(apiRequest.Data, options: JsonOptions);
-                    }
-                }
+                
+                // Create the initial request message
+                var message = CreateRequestMessage(apiRequest, withBearer);
 
                 var apiResponse = await client.SendAsync(message);
 
@@ -117,24 +94,11 @@ After:
                     {
                         Console.WriteLine("✅ Token refreshed successfully - retrying request");
                         
-                        // Retry the request with new token
-                        var newAccessToken = _tokenProvider.GetAccessToken();
-                        message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", newAccessToken);
+                        // ✅ Create a NEW request message for retry (can't reuse the old one)
+                        var retryMessage = CreateRequestMessage(apiRequest, withBearer);
                         
-                        // Recreate content if needed (streams can only be read once)
-                        if (apiRequest.Data != null)
-                        {
-                            if (apiRequest.Data is MultipartFormDataContent multipartContent)
-                            {
-                                message.Content = multipartContent;
-                            }
-                            else
-                            {
-                                message.Content = JsonContent.Create(apiRequest.Data, options: JsonOptions);
-                            }
-                        }
-                        
-                        apiResponse = await client.SendAsync(message);
+                        apiResponse = await client.SendAsync(retryMessage);
+                        Console.WriteLine($"✅ Retry request completed with status: {apiResponse.StatusCode}");
                     }
                     else
                     {
@@ -146,9 +110,42 @@ After:
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Unexpected Error: {ex.Message}");
+                Console.WriteLine($"❌ Unexpected Error in SendAsync: {ex.Message}");
+                Console.WriteLine($"   Stack Trace: {ex.StackTrace}");
                 return default;
             }
+        }
+
+        private HttpRequestMessage CreateRequestMessage(ApiRequest apiRequest, bool withBearer)
+        {
+            var message = new HttpRequestMessage
+            {
+                RequestUri = new Uri(apiRequest.Url, uriKind: UriKind.Relative),
+                Method = GetHttpMethod(apiRequest.ApiType),
+            };
+
+            // Use TokenProvider to get the access token
+            var accessToken = _tokenProvider.GetAccessToken();
+            if (withBearer && !string.IsNullOrEmpty(accessToken))
+            {
+                message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            }
+
+            if (apiRequest.Data != null)
+            {
+                // Check if data is MultipartFormDataContent (for file uploads)
+                if (apiRequest.Data is MultipartFormDataContent multipartContent)
+                {
+                    message.Content = multipartContent;
+                }
+                else
+                {
+                    // Use JSON for regular data
+                    message.Content = JsonContent.Create(apiRequest.Data, options: JsonOptions);
+                }
+            }
+
+            return message;
         }
 
         private async Task<bool> RefreshAccessTokenAsync()
@@ -211,18 +208,29 @@ After:
                         _tokenProvider.SetToken(result.Data.AccessToken, result.Data.RefreshToken);
                         
                         Console.WriteLine("✅ Tokens updated successfully");
+                        Console.WriteLine($"   New Access Token: {result.Data.AccessToken.Substring(0, 20)}...");
                         return true;
                     }
+                    else
+                    {
+                        Console.WriteLine("❌ Invalid response structure from refresh token API");
+                    }
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"❌ Token refresh failed with status: {response.StatusCode}");
+                    Console.WriteLine($"   Error content: {errorContent}");
                 }
 
                 // Refresh failed - clear tokens
                 _tokenProvider.ClearToken();
-                Console.WriteLine($"❌ Token refresh failed with status: {response.StatusCode}");
                 return false;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ Token refresh error: {ex.Message}");
+                Console.WriteLine($"   Stack Trace: {ex.StackTrace}");
                 _tokenProvider.ClearToken();
                 return false;
             }
