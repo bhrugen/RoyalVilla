@@ -1,9 +1,8 @@
-﻿namespace RoyalVilla.DTO
+namespace RoyalVilla.DTO
 {
-    public class TokenDTO
+    public class RefreshTokenRequestDTO
     {
         public string? AccessToken { get; set; }
         public string? RefreshToken { get; set; }
-        public DateTime? ExpiresAt { get; set; }
     }
 }
