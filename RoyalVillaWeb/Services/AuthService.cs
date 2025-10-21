@@ -20,7 +20,7 @@ namespace RoyalVillaWeb.Services
                 ApiType = SD.ApiType.POST,
                 Data = loginRequestDTO,
                 Url = APIEndpoint + "/login",
-            });
+            }, withBearer: false);  // ✅ No token needed - user is logging in to GET a token
         }
 
         public Task<T?> RegisterAsync<T>(RegisterationRequestDTO registerationRequestDTO)
@@ -30,7 +30,7 @@ namespace RoyalVillaWeb.Services
                 ApiType = SD.ApiType.POST,
                 Data = registerationRequestDTO,
                 Url = APIEndpoint + "/register",
-            });
+            }, withBearer: false);  // ✅ No token needed - user doesn't have an account yet
         }
     }
 }

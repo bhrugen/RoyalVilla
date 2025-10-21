@@ -50,7 +50,7 @@ After:
             _tokenProvider = tokenProvider;
         }
 
-        public async Task<T?> SendAsync<T>(ApiRequest apiRequest)
+        public async Task<T?> SendAsync<T>(ApiRequest apiRequest, bool withBearer=true)
         {
             try
             {
@@ -63,7 +63,7 @@ After:
 
                 // Use TokenProvider to get the token
                 var token = _tokenProvider.GetToken();
-                if (!string.IsNullOrEmpty(token))
+                if (withBearer && !string.IsNullOrEmpty(token))
                 {
                     message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 }
