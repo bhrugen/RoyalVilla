@@ -51,7 +51,7 @@ namespace RoyalVilla_API.Services
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddMinutes(1), // Short-lived access token
+                Expires = DateTime.UtcNow.AddMinutes(2), // Short-lived access token
                 SigningCredentials = new SigningCredentials(
                     new SymmetricSecurityKey(key),
                     SecurityAlgorithms.HmacSha256Signature)

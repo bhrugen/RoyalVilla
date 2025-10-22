@@ -78,32 +78,38 @@ After:
             try
             {
                 var client = _httpClient.CreateClient("RoyalVillaAPI");
-                
-                // Create the initial request message
                 var message = CreateRequestMessage(apiRequest, withBearer);
-
                 var apiResponse = await client.SendAsync(message);
 
-                // ✅ ONLY refresh token if we get 401 Unauthorized
+                // Refresh token logic on401
                 if (apiResponse.StatusCode == HttpStatusCode.Unauthorized && withBearer && !IsRefreshingToken)
                 {
-                    Console.WriteLine("⚠️ Received 401 Unauthorized - attempting token refresh");
-                    
+                    Console.WriteLine("⚠️ Received401 Unauthorized - attempting token refresh");
                     var refreshed = await RefreshAccessTokenAsync();
                     if (refreshed)
                     {
                         Console.WriteLine("✅ Token refreshed successfully - retrying request");
-                        
-                        // ✅ Create a NEW request message for retry (can't reuse the old one)
                         var retryMessage = CreateRequestMessage(apiRequest, withBearer);
-                        
                         apiResponse = await client.SendAsync(retryMessage);
                         Console.WriteLine($"✅ Retry request completed with status: {apiResponse.StatusCode}");
                     }
                     else
                     {
                         Console.WriteLine("❌ Token refresh failed - user needs to login again");
+                        _tokenProvider.ClearToken();
+                        _httpContextAccessor.HttpContext?.Session.SetString("SessionExpiredMessage", "Your session has expired. Please login again.");
+                        _httpContextAccessor.HttpContext?.Response.Redirect("/auth/login");
+                        return default;
                     }
+                }
+
+                // If after refresh, still unauthorized, redirect to login
+                if (apiResponse.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    _tokenProvider.ClearToken();
+                    _httpContextAccessor.HttpContext?.Session.SetString("SessionExpiredMessage", "Your session has expired. Please login again.");
+                    _httpContextAccessor.HttpContext?.Response.Redirect("/auth/login");
+                    return default;
                 }
 
                 return await apiResponse.Content.ReadFromJsonAsync<T>(JsonOptions);

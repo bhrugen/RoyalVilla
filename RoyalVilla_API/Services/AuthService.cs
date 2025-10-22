@@ -69,7 +69,7 @@ namespace RoyalVilla_API.Services
 
                 // Generate refresh token
                 var refreshToken = await _tokenService.GenerateRefreshTokenAsync();
-                var refreshTokenExpiry = DateTime.UtcNow.AddMinutes(3); // Long-lived refresh token
+                var refreshTokenExpiry = DateTime.UtcNow.AddMinutes(5); // Long-lived refresh token
 
                 // Save refresh token to database
                 if (!string.IsNullOrEmpty(jwtTokenId))
@@ -139,7 +139,7 @@ namespace RoyalVilla_API.Services
 
                 // Generate new refresh token
                 var newRefreshToken = await _tokenService.GenerateRefreshTokenAsync();
-                var refreshTokenExpiry = DateTime.UtcNow.AddMinutes(3);
+                var refreshTokenExpiry = DateTime.UtcNow.AddMinutes(5);
 
                 // 🔑 KEY CHANGE: Use the SAME tokenFamilyId to maintain the token chain
                 // This allows tracking of token families and selective revocation
