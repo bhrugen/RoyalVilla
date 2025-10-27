@@ -193,6 +193,17 @@ namespace RoyalVilla_API.Controllers.v2
 
                 Villa villa = _mapper.Map<Villa>(villaDTO);
 
+                
+
+                if (villaDTO.Image != null)
+                {
+                    if (!_imageService.ValidateImage(villaDTO.Image))
+                    {
+                        return BadRequest(ApiResponse<object>.BadRequest("Invalid image file. Allowed formats: jpg, jpeg, png. Max size: 5MB"));
+                    }
+                    villa.ImageUrl = await _imageService.UploadImageAsync(villaDTO.Image);
+                }
+
                 await _db.Villa.AddAsync(villa);
                 await _db.SaveChangesAsync();
 
@@ -214,7 +225,7 @@ namespace RoyalVilla_API.Controllers.v2
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<ApiResponse<VillaDTO>>> UpdateVilla(int id, VillaUpdateDTO villaDTO)
+        public async Task<ActionResult<ApiResponse<VillaDTO>>> UpdateVilla(int id, [FromForm] VillaUpdateDTO villaDTO)
         {
             try
             {
@@ -228,6 +239,11 @@ namespace RoyalVilla_API.Controllers.v2
                     return BadRequest(ApiResponse<object>.BadRequest("Villa ID in URL does not match Villa ID in request body"));
                 }
 
+
+                if (villaDTO.Image != null && !_imageService.ValidateImage(villaDTO.Image))
+                {
+                    return BadRequest(ApiResponse<object>.BadRequest("Invalid image file. Allowed formats: jpg, jpeg, png. Max size: 5MB"));
+                }
 
                 var existingVilla = await _db.Villa.FirstOrDefaultAsync(u => u.Id == id);
 
@@ -244,8 +260,22 @@ namespace RoyalVilla_API.Controllers.v2
                     return Conflict(ApiResponse<object>.Conflict($"A villa with the name '{villaDTO.Name}' already exists"));
                 }
 
+                var oldImageUrl = existingVilla.ImageUrl;
+
                 _mapper.Map(villaDTO, existingVilla);
                 existingVilla.UpdatedDate = DateTime.Now;
+
+
+                if (villaDTO.Image != null)
+                {
+                    existingVilla.ImageUrl = await _imageService.UploadImageAsync(villaDTO.Image);
+
+                    if(!string.IsNullOrEmpty(oldImageUrl) && oldImageUrl!= existingVilla.ImageUrl)
+                    {
+                        await _imageService.DeleteImageAsync(oldImageUrl);
+                    }
+                }
+
 
                 await _db.SaveChangesAsync();
                 var response = ApiResponse<VillaDTO>.Ok(_mapper.Map<VillaDTO>(villaDTO), "Villa updated successfully");
@@ -254,7 +284,7 @@ namespace RoyalVilla_API.Controllers.v2
             }
             catch (Exception ex)
             {
-                var errorResponse = ApiResponse<object>.Error(500, "An error occurred while creating the villa:", ex.Message);
+                var errorResponse = ApiResponse<object>.Error(500, "An error occurred while updating the villa:", ex.Message);
                 return StatusCode(500, errorResponse);
             }
         }
@@ -276,6 +306,12 @@ namespace RoyalVilla_API.Controllers.v2
                     return NotFound(ApiResponse<object>.NotFound($"Villa with ID {id} was not found"));
                 }
 
+
+                    if (!string.IsNullOrEmpty(existingVilla.ImageUrl))
+                    {
+                        await _imageService.DeleteImageAsync(existingVilla.ImageUrl);
+                    }
+               
                 _db.Villa.Remove(existingVilla);
                 await _db.SaveChangesAsync();
 
@@ -285,7 +321,7 @@ namespace RoyalVilla_API.Controllers.v2
             }
             catch (Exception ex)
             {
-                var errorResponse = ApiResponse<object>.Error(500, "An error occurred while creating the villa:", ex.Message);
+                var errorResponse = ApiResponse<object>.Error(500, "An error occurred while deleting the villa:", ex.Message);
                 return StatusCode(500, errorResponse);
             }
         }
