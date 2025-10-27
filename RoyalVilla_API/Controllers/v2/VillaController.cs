@@ -169,7 +169,8 @@ namespace RoyalVilla_API.Controllers.v2
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [AllowAnonymous]
+        [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(ApiResponse<VillaDTO>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
@@ -208,7 +209,7 @@ namespace RoyalVilla_API.Controllers.v2
                 await _db.SaveChangesAsync();
 
                 var response = ApiResponse<VillaDTO>.CreatedAt(_mapper.Map<VillaDTO>(villa), "Villa created successfully");
-                return CreatedAtAction(nameof(CreateVilla), new { id = villa.Id }, response);
+                return CreatedAtAction(nameof(GetVillaById), new { id = villa.Id }, response);
 
             }
             catch (Exception ex)
@@ -219,7 +220,8 @@ namespace RoyalVilla_API.Controllers.v2
         }
 
         [HttpPut("{id:int}")]
-        [Authorize(Roles = "Admin")]
+        [AllowAnonymous]
+        [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(ApiResponse<VillaDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
@@ -269,7 +271,7 @@ namespace RoyalVilla_API.Controllers.v2
                 if (villaDTO.Image != null)
                 {
                     existingVilla.ImageUrl = await _imageService.UploadImageAsync(villaDTO.Image);
-
+                    villaDTO.ImageUrl = existingVilla.ImageUrl;
                     if(!string.IsNullOrEmpty(oldImageUrl) && oldImageUrl!= existingVilla.ImageUrl)
                     {
                         await _imageService.DeleteImageAsync(oldImageUrl);
@@ -279,7 +281,7 @@ namespace RoyalVilla_API.Controllers.v2
 
                 await _db.SaveChangesAsync();
                 var response = ApiResponse<VillaDTO>.Ok(_mapper.Map<VillaDTO>(villaDTO), "Villa updated successfully");
-                return Ok(villaDTO);
+                return Ok(response);
 
             }
             catch (Exception ex)
