@@ -18,14 +18,57 @@ namespace RoyalVilla_API.Services
             throw new NotImplementedException();
         }
 
-        public Task<string> UploadImageAsync(IFormFile file)
+        public async Task<string> UploadImageAsync(IFormFile file)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (!ValidateImage(file))
+                {
+                    throw new InvalidOperationException("Invalid image file");
+                }
+
+                var uploadFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "villas");
+                if (!Directory.Exists(uploadFolder))
+                {
+                    Directory.CreateDirectory(uploadFolder);
+                }
+
+                var fileExtension = Path.GetExtension(file.FileName);
+                var uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
+
+                var filePath = Path.Combine(uploadFolder, uniqueFileName);
+
+                //save file
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(fileStream);
+                }
+
+                return $"/images/villas/{uniqueFileName}";
+
+            }
+            catch(Exception ex)
+            {
+                throw;
+            }
         }
 
         public bool ValidateImage(IFormFile file)
         {
-            throw new NotImplementedException();
+            if(file==null  || file.Length == 0)
+            {
+                return false;
+            }
+            if (file.Length > MaxFileSize)
+            {
+                return false;
+            }
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!AllowedExtensions.Contains(extension))
+            {
+                return false;
+            }
+            return true;
         }
     }
 }
