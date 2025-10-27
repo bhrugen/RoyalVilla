@@ -9,6 +9,7 @@ using RoyalVilla_API.Data;
 using RoyalVilla_API.Models;
 using RoyalVilla_API.Services;
 using System.Collections;
+using System.Diagnostics;
 
 namespace RoyalVilla_API.Controllers.v2
 {
@@ -16,19 +17,20 @@ namespace RoyalVilla_API.Controllers.v2
     [Route("api/v{version:apiVersion}/villa")]
     [ApiVersion("2.0")]
     [ApiController]
-    [Authorize]
     //[Authorize(Roles = "Customer,Admin")]
     public class VillaController : ControllerBase
     {
         private readonly ApplicationDbContext _db;
         private readonly IMapper _mapper;
         private readonly IFileService _fileService;
+        private readonly ILogger<VillaController> _logger;
 
-        public VillaController(ApplicationDbContext db, IMapper mapper, IFileService fileService)
+        public VillaController(ApplicationDbContext db, IMapper mapper, IFileService fileService, ILogger<VillaController> logger)
         {
             _db = db;
             _mapper = mapper;
             _fileService = fileService;
+            _logger = logger;
         }
 
 
@@ -36,10 +38,14 @@ namespace RoyalVilla_API.Controllers.v2
         //[Authorize(Roles ="Admin")]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<VillaDTO>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ApiResponse<IEnumerable<VillaDTO>>>> GetVillas([FromQuery] string? filterBy,
-            [FromQuery] string? filterQuery, [FromQuery] string? sortBy,
-            [FromQuery] string? sortOrder = "asc", [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<ApiResponse<IEnumerable<VillaDTO>>>> GetVillas(
+            [FromQuery] string? filterBy,
+            [FromQuery] string? filterQuery, 
+            [FromQuery] string? sortBy,
+            [FromQuery] string? sortOrder = "asc", 
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            CancellationToken cancellationToken = default) // ✅ Added CancellationToken
         {
 
             if (page < 1) page = 1;
@@ -110,10 +116,10 @@ namespace RoyalVilla_API.Controllers.v2
 
             //page 5, pagesize 10
             var skip = (page - 1) * pageSize;
-            var totalCount = await villasQuery.CountAsync();
+            var totalCount = await villasQuery.CountAsync(cancellationToken); // ✅ Pass cancellationToken
             var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
 
-            var villas = await villasQuery.Skip(skip).Take(pageSize).ToListAsync();
+            var villas = await villasQuery.Skip(skip).Take(pageSize).ToListAsync(cancellationToken); // ✅ Pass cancellationToken
             var dtoResponseVilla = _mapper.Map<List<VillaDTO>>(villas);
             
 
@@ -146,7 +152,7 @@ namespace RoyalVilla_API.Controllers.v2
         [ProducesResponseType(typeof(ApiResponse<VillaDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ApiResponse<VillaDTO>>> GetVillaById(int id)
+        public async Task<ActionResult<ApiResponse<VillaDTO>>> GetVillaById(int id, CancellationToken cancellationToken = default) // ✅ Added CancellationToken
         {
             try
             {
@@ -155,7 +161,7 @@ namespace RoyalVilla_API.Controllers.v2
                     return NotFound(ApiResponse<object>.NotFound("Villa ID must be greater than 0"));
                 }
 
-                var villa = await _db.Villa.FirstOrDefaultAsync(u => u.Id == id);
+                var villa = await _db.Villa.FirstOrDefaultAsync(u => u.Id == id, cancellationToken); // ✅ Pass cancellationToken
                 if (villa == null)
                 {
                     return NotFound(ApiResponse<object>.NotFound($"Villa with ID {id} was not found"));
@@ -176,7 +182,7 @@ namespace RoyalVilla_API.Controllers.v2
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<ApiResponse<VillaDTO>>> CreateVilla([FromForm] VillaCreateDTO villaDTO)
+        public async Task<ActionResult<ApiResponse<VillaDTO>>> CreateVilla([FromForm] VillaCreateDTO villaDTO, CancellationToken cancellationToken = default) // ✅ Added CancellationToken
         {
             try
             {
@@ -191,7 +197,7 @@ namespace RoyalVilla_API.Controllers.v2
                     return BadRequest(ApiResponse<object>.BadRequest("Invalid image file. Allowed formats: jpg, jpeg, png, gif, webp. Max size: 5MB"));
                 }
 
-                var duplicateVilla = await _db.Villa.FirstOrDefaultAsync(u => u.Name.ToLower() == villaDTO.Name.ToLower());
+                var duplicateVilla = await _db.Villa.FirstOrDefaultAsync(u => u.Name.ToLower() == villaDTO.Name.ToLower(), cancellationToken); // ✅ Pass cancellationToken
 
                 if (duplicateVilla != null)
                 {
@@ -208,8 +214,8 @@ namespace RoyalVilla_API.Controllers.v2
 
                 villa.CreatedDate = DateTime.UtcNow;
 
-                await _db.Villa.AddAsync(villa);
-                await _db.SaveChangesAsync();
+                await _db.Villa.AddAsync(villa, cancellationToken); // ✅ Pass cancellationToken
+                await _db.SaveChangesAsync(cancellationToken); // ✅ Pass cancellationToken
 
                 var response = ApiResponse<VillaDTO>.CreatedAt(_mapper.Map<VillaDTO>(villa), "Villa created successfully");
                 return CreatedAtAction(nameof(GetVillaById), new { id = villa.Id, version = "2.0" }, response);
@@ -229,7 +235,7 @@ namespace RoyalVilla_API.Controllers.v2
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<ApiResponse<VillaDTO>>> UpdateVilla(int id, [FromForm] VillaUpdateDTO villaDTO)
+        public async Task<ActionResult<ApiResponse<VillaDTO>>> UpdateVilla(int id, [FromForm] VillaUpdateDTO villaDTO, CancellationToken cancellationToken = default) // ✅ Added CancellationToken
         {
             try
             {
@@ -249,7 +255,7 @@ namespace RoyalVilla_API.Controllers.v2
                     return BadRequest(ApiResponse<object>.BadRequest("Invalid image file. Allowed formats: jpg, jpeg, png, gif, webp. Max size: 5MB"));
                 }
 
-                var existingVilla = await _db.Villa.FirstOrDefaultAsync(u => u.Id == id);
+                var existingVilla = await _db.Villa.FirstOrDefaultAsync(u => u.Id == id, cancellationToken); // ✅ Pass cancellationToken
 
                 if (existingVilla == null)
                 {
@@ -257,7 +263,7 @@ namespace RoyalVilla_API.Controllers.v2
                 }
 
                 var duplicateVilla = await _db.Villa.FirstOrDefaultAsync(u => u.Name.ToLower() == villaDTO.Name.ToLower()
-                && u.Id != id);
+                && u.Id != id, cancellationToken); // ✅ Pass cancellationToken
 
                 if (duplicateVilla != null)
                 {
@@ -285,7 +291,7 @@ namespace RoyalVilla_API.Controllers.v2
 
                 existingVilla.UpdatedDate = DateTime.UtcNow;
 
-                await _db.SaveChangesAsync();
+                await _db.SaveChangesAsync(cancellationToken); // ✅ Pass cancellationToken
 
                 var response = ApiResponse<VillaDTO>.Ok(_mapper.Map<VillaDTO>(existingVilla), "Villa updated successfully");
                 return Ok(response);
@@ -303,11 +309,11 @@ namespace RoyalVilla_API.Controllers.v2
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ApiResponse<object>>> DeleteVilla(int id)
+        public async Task<ActionResult<ApiResponse<object>>> DeleteVilla(int id, CancellationToken cancellationToken = default) // ✅ Added CancellationToken
         {
             try
             {
-                var existingVilla = await _db.Villa.FirstOrDefaultAsync(u => u.Id == id);
+                var existingVilla = await _db.Villa.FirstOrDefaultAsync(u => u.Id == id, cancellationToken); // ✅ Pass cancellationToken
 
                 if (existingVilla == null)
                 {
@@ -321,7 +327,7 @@ namespace RoyalVilla_API.Controllers.v2
                 }
 
                 _db.Villa.Remove(existingVilla);
-                await _db.SaveChangesAsync();
+                await _db.SaveChangesAsync(cancellationToken); // ✅ Pass cancellationToken
 
                 var response = ApiResponse<object>.NoContent("Villa deleted successfully");
                 return Ok(response);
@@ -333,5 +339,165 @@ namespace RoyalVilla_API.Controllers.v2
             }
         }
 
+        // ========================================
+        // 🎯 CANCELLATION TOKEN DEMONSTRATION ENDPOINTS
+        // ========================================
+
+        /// <summary>
+        /// 🔴 Demo: Search WITHOUT CancellationToken (BAD PRACTICE)
+        /// This endpoint demonstrates what happens when you DON'T use CancellationToken.
+        /// Even if the client cancels, the server keeps processing!
+        /// </summary>
+        [HttpGet("demo/without-cancellation")]
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<VillaDTO>>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<ApiResponse<IEnumerable<VillaDTO>>>> DemoSearchWithoutCancellation(
+            [FromQuery] string? searchTerm)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            _logger.LogInformation("🔴 DEMO WITHOUT CancellationToken - Started at {Time}", DateTime.UtcNow);
+
+            try
+            {
+                var query = _db.Villa.AsQueryable();
+
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    _logger.LogInformation("   Filtering by search term...");
+                    await Task.Delay(2000); // ❌ Simulate slow operation WITHOUT cancellation support
+                    query = query.Where(v => v.Name.Contains(searchTerm) || v.Details.Contains(searchTerm));
+                }
+
+                _logger.LogInformation("   Executing database query...");
+                await Task.Delay(2000); // ❌ Another slow operation
+                var villas = await _db.Villa.ToListAsync(); // ❌ No cancellation token passed
+
+                _logger.LogInformation("   Calculating statistics...");
+                await Task.Delay(2000); // ❌ Yet another slow operation
+
+                stopwatch.Stop();
+                _logger.LogWarning("🔴 DEMO - Completed after {Duration}ms (even if client cancelled!)", stopwatch.ElapsedMilliseconds);
+
+                var villaList = _mapper.Map<List<VillaDTO>>(villas);
+                var message = $"⚠️ BAD: Server processed for {stopwatch.ElapsedMilliseconds}ms even if you cancelled! Wasted resources. Found {villaList.Count} villas.";
+
+                return Ok(ApiResponse<IEnumerable<VillaDTO>>.Ok(villaList, message));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "🔴 Error in demo WITHOUT cancellation");
+                return StatusCode(500, ApiResponse<IEnumerable<VillaDTO>>.Error(500, "Search failed", ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// ✅ Demo: Search WITH CancellationToken (BEST PRACTICE)
+        /// This endpoint demonstrates proper CancellationToken usage.
+        /// When client cancels, the server stops immediately and frees resources!
+        /// </summary>
+        [HttpGet("demo/with-cancellation")]
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<VillaDTO>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<VillaDTO>>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ApiResponse<IEnumerable<VillaDTO>>>> DemoSearchWithCancellation(
+            [FromQuery] string? searchTerm,
+            CancellationToken cancellationToken) // ✅ Accept CancellationToken
+        {
+            var stopwatch = Stopwatch.StartNew();
+            _logger.LogInformation("✅ DEMO WITH CancellationToken - Started at {Time}", DateTime.UtcNow);
+
+            try
+            {
+                var query = _db.Villa.AsQueryable();
+
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    _logger.LogInformation("   Filtering by search term...");
+                    await Task.Delay(2000, cancellationToken); // ✅ Pass cancellationToken
+                    query = query.Where(v => v.Name.Contains(searchTerm) || v.Details.Contains(searchTerm));
+                }
+
+                cancellationToken.ThrowIfCancellationRequested(); // ✅ Check for cancellation
+
+                _logger.LogInformation("   Executing database query...");
+                await Task.Delay(2000, cancellationToken); // ✅ Pass cancellationToken
+                var villas = await query.ToListAsync(cancellationToken); // ✅ Pass to EF Core
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                _logger.LogInformation("   Calculating statistics...");
+                await Task.Delay(2000, cancellationToken); // ✅ Pass cancellationToken
+
+                stopwatch.Stop();
+                _logger.LogInformation("✅ DEMO - Completed in {Duration}ms", stopwatch.ElapsedMilliseconds);
+
+                var villaList = _mapper.Map<List<VillaDTO>>(villas);
+                var message = $"✅ GOOD: Completed in {stopwatch.ElapsedMilliseconds}ms. Would have stopped immediately if cancelled! Found {villaList.Count} villas.";
+
+                return Ok(ApiResponse<IEnumerable<VillaDTO>>.Ok(villaList, message));
+            }
+            catch (OperationCanceledException)
+            {
+                stopwatch.Stop();
+                _logger.LogWarning("✅ DEMO - CANCELLED after {Duration}ms (resources freed immediately!)", stopwatch.ElapsedMilliseconds);
+                
+                var message = $"✅ GOOD: Stopped after only {stopwatch.ElapsedMilliseconds}ms. Resources freed immediately! Compare to 6000ms+ in 'without-cancellation'.";
+                return StatusCode(499, ApiResponse<IEnumerable<VillaDTO>>.Error(499, "Search cancelled by client", message));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "✅ Error in demo WITH cancellation");
+                return StatusCode(500, ApiResponse<IEnumerable<VillaDTO>>.Error(500, "Search failed", ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// ⏱️ Demo: Search with automatic timeout
+        /// Demonstrates how to create a custom timeout using CancellationTokenSource
+        /// </summary>
+        [HttpGet("demo/with-timeout")]
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<VillaDTO>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<VillaDTO>>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ApiResponse<IEnumerable<VillaDTO>>>> DemoSearchWithTimeout(
+            [FromQuery] string? searchTerm,
+            [FromQuery] int timeoutSeconds = 3)
+        {
+            // ✅ Create CancellationTokenSource with timeout
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
+            var stopwatch = Stopwatch.StartNew();
+            
+            _logger.LogInformation("⏱️ DEMO with {Timeout}s timeout - Started", timeoutSeconds);
+
+            try
+            {
+                var query = _db.Villa.AsQueryable();
+
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    query = query.Where(v => v.Name.Contains(searchTerm) || v.Details.Contains(searchTerm));
+                }
+
+                // Simulate a VERY long operation (10 seconds)
+                _logger.LogInformation("   Starting long operation (10s - will timeout at {Timeout}s)...", timeoutSeconds);
+                await Task.Delay(10000, cts.Token); // Will timeout before completing
+                
+                var villas = await query.ToListAsync(cts.Token);
+
+                stopwatch.Stop();
+                _logger.LogInformation("⏱️ DEMO - Completed in {Duration}ms", stopwatch.ElapsedMilliseconds);
+
+                var villaList = _mapper.Map<List<VillaDTO>>(villas);
+                var message = $"Completed within {timeoutSeconds}s timeout. Found {villaList.Count} villas in {stopwatch.ElapsedMilliseconds}ms.";
+
+                return Ok(ApiResponse<IEnumerable<VillaDTO>>.Ok(villaList, message));
+            }
+            catch (OperationCanceledException)
+            {
+                stopwatch.Stop();
+                _logger.LogWarning("⏱️ DEMO - TIMED OUT after {Duration}ms (limit was {Timeout}s)", 
+                    stopwatch.ElapsedMilliseconds, timeoutSeconds);
+                
+                var message = $"Operation exceeded the {timeoutSeconds}s timeout limit. Stopped at {stopwatch.ElapsedMilliseconds}ms to prevent long-running queries.";
+                return StatusCode(408, ApiResponse<IEnumerable<VillaDTO>>.Error(408, $"Search timed out after {timeoutSeconds} seconds", message));
+            }
+        }
     }
 }

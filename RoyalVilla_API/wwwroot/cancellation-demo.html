@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CancellationToken Demo - Royal Villa API</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            color: rgba(255,255,255,0.9);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .demo-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s;
+        }
+
+        .demo-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .demo-card h2 {
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .demo-card.bad h2 {
+            border-color: #e74c3c;
+        }
+
+        .demo-card.good h2 {
+            border-color: #2ecc71;
+        }
+
+        .demo-card.timeout h2 {
+            border-color: #f39c12;
+        }
+
+        .demo-card.linked h2 {
+            border-color: #3498db;
+        }
+
+        .description {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .demo-card.bad .description {
+            border-color: #e74c3c;
+        }
+
+        .demo-card.good .description {
+            border-color: #2ecc71;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .start-btn {
+            background: #667eea;
+            color: white;
+        }
+
+        .start-btn:hover:not(:disabled) {
+            background: #5568d3;
+        }
+
+        .cancel-btn {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .cancel-btn:hover:not(:disabled) {
+            background: #c0392b;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status {
+            background: #e8eaf6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            min-height: 80px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .log {
+            background: #263238;
+            color: #aed581;
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+        }
+
+        .log-entry.error {
+            color: #ef5350;
+        }
+
+        .log-entry.success {
+            color: #66bb6a;
+        }
+
+        .log-entry.warning {
+            color: #ffb74d;
+        }
+
+        .log-entry.info {
+            color: #42a5f5;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .comparison {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .comparison h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .badge.bad {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .badge.good {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .instructions {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .instructions h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .token-input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>?? CancellationToken Interactive Demo</h1>
+        <p class="subtitle">See the difference between with and without cancellation tokens in action!</p>
+
+        <div class="instructions">
+            <h3>?? How to Use This Demo</h3>
+            <ol>
+                <li><strong>Get your access token:</strong> Login to the API and paste your JWT token below</li>
+                <li><strong>Click "Start Search"</strong> on any demo card to begin a simulated long-running operation (6+ seconds)</li>
+                <li><strong>Click "Cancel Request"</strong> after 2-3 seconds to simulate user cancelling</li>
+                <li><strong>Watch the logs</strong> to see how each implementation handles cancellation</li>
+                <li><strong>Compare the results</strong> - notice how WITH cancellation stops immediately!</li>
+            </ol>
+            
+            <label for="tokenInput"><strong>Your Access Token:</strong></label>
+            <input type="text" id="tokenInput" class="token-input" placeholder="Paste your JWT token here (from /api/auth/login)">
+        </div>
+
+        <div class="demo-grid">
+            <!-- WITHOUT CancellationToken Demo -->
+            <div class="demo-card bad">
+                <h2>?? WITHOUT CancellationToken (Bad Practice)</h2>
+                <div class="description">
+                    <strong>? Problem:</strong> Server continues processing even after client cancels.
+                    Wastes CPU, memory, and database connections.
+                </div>
+                <div class="controls">
+                    <button class="start-btn" onclick="startWithout()">Start Search</button>
+                    <button class="cancel-btn" id="cancelWithout" onclick="cancelWithout()" disabled>Cancel Request</button>
+                </div>
+                <div class="status" id="statusWithout">Ready to start...</div>
+                <div class="log" id="logWithout"></div>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-label">Duration</div>
+                        <div class="stat-value" id="durationWithout">0s</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Status</div>
+                        <div class="stat-value" id="stateWithout">Idle</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WITH CancellationToken Demo -->
+            <div class="demo-card good">
+                <h2>? WITH CancellationToken (Best Practice)</h2>
+                <div class="description">
+                    <strong>? Solution:</strong> Server stops immediately when client cancels.
+                    Saves resources and improves scalability.
+                </div>
+                <div class="controls">
+                    <button class="start-btn" onclick="startWith()">Start Search</button>
+                    <button class="cancel-btn" id="cancelWith" onclick="cancelWith()" disabled>Cancel Request</button>
+                </div>
+                <div class="status" id="statusWith">Ready to start...</div>
+                <div class="log" id="logWith"></div>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-label">Duration</div>
+                        <div class="stat-value" id="durationWith">0s</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Status</div>
+                        <div class="stat-value" id="stateWith">Idle</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeout Demo -->
+            <div class="demo-card timeout">
+                <h2>?? WITH Timeout (Auto-Cancel)</h2>
+                <div class="description">
+                    <strong>?? Feature:</strong> Automatically cancels after 5 seconds.
+                    Prevents operations from running forever.
+                </div>
+                <div class="controls">
+                    <button class="start-btn" onclick="startTimeout()">Start (5s timeout)</button>
+                </div>
+                <div class="status" id="statusTimeout">Ready to start...</div>
+                <div class="log" id="logTimeout"></div>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-label">Duration</div>
+                        <div class="stat-value" id="durationTimeout">0s</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Timeout</div>
+                        <div class="stat-value">5s</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Linked Token Demo -->
+            <div class="demo-card linked">
+                <h2>?? Linked CancellationTokens</h2>
+                <div class="description">
+                    <strong>?? Advanced:</strong> Multiple cancellation sources (client, timeout, manual).
+                    Most flexible approach.
+                </div>
+                <div class="controls">
+                    <button class="start-btn" onclick="startLinked()">Start (8s timeout)</button>
+                    <button class="cancel-btn" id="cancelLinked" onclick="cancelLinked()" disabled>Cancel Request</button>
+                </div>
+                <div class="status" id="statusLinked">Ready to start...</div>
+                <div class="log" id="logLinked"></div>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-label">Duration</div>
+                        <div class="stat-value" id="durationLinked">0s</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Sources</div>
+                        <div class="stat-value">3</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="comparison">
+            <h2>?? Performance Comparison</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>WITHOUT CancellationToken</th>
+                        <th>WITH CancellationToken</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Stops on client cancel?</strong></td>
+                        <td><span class="badge bad">? No</span></td>
+                        <td><span class="badge good">? Yes</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Wastes resources?</strong></td>
+                        <td><span class="badge bad">? Yes (6+ seconds)</span></td>
+                        <td><span class="badge good">? No (stops at ~2s)</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Database connections freed?</strong></td>
+                        <td><span class="badge bad">? After completion</span></td>
+                        <td><span class="badge good">? Immediately</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Supports timeout?</strong></td>
+                        <td><span class="badge bad">? No</span></td>
+                        <td><span class="badge good">? Yes</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cost in cloud?</strong></td>
+                        <td><span class="badge bad">? High</span></td>
+                        <td><span class="badge good">? Low (80% savings)</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Server capacity?</strong></td>
+                        <td><span class="badge bad">? Reduced</span></td>
+                        <td><span class="badge good">? Maximized</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://localhost:7297';
+        
+        let controllerWithout = null;
+        let controllerWith = null;
+        let controllerLinked = null;
+        
+        function getToken() {
+            const token = document.getElementById('tokenInput').value.trim();
+            if (!token) {
+                alert('Please paste your access token first!');
+                throw new Error('No token');
+            }
+            return token;
+        }
+
+        function addLog(elementId, message, type = 'info') {
+            const log = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${timestamp}] ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function updateStatus(statusId, message) {
+            document.getElementById(statusId).textContent = message;
+        }
+
+        function updateDuration(durationId, seconds) {
+            document.getElementById(durationId).textContent = seconds.toFixed(1) + 's';
+        }
+
+        function updateState(stateId, state) {
+            document.getElementById(stateId).textContent = state;
+        }
+
+        // WITHOUT CancellationToken
+        async function startWithout() {
+            try {
+                const token = getToken();
+                const startTime = Date.now();
+                
+                controllerWithout = new AbortController();
+                document.getElementById('cancelWithout').disabled = false;
+                
+                updateStatus('statusWithout', '?? Searching... (try cancelling - it won\'t stop!)');
+                updateState('stateWithout', 'Running');
+                addLog('logWithout', '?? WITHOUT CancellationToken - Search started', 'info');
+                
+                const interval = setInterval(() => {
+                    const elapsed = (Date.now() - startTime) / 1000;
+                    updateDuration('durationWithout', elapsed);
+                }, 100);
+
+                const response = await fetch(
+                    `${API_BASE}/api/v2/villa-search/without-cancellation?searchTerm=villa&minRate=100`,
+                    {
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        signal: controllerWithout.signal
+                    }
+                );
+
+                clearInterval(interval);
+                const elapsed = (Date.now() - startTime) / 1000;
+                updateDuration('durationWithout', elapsed);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    addLog('logWithout', `? Search completed in ${elapsed.toFixed(1)}s`, 'success');
+                    addLog('logWithout', `?? Notice: Even if you cancelled, server finished the work!`, 'warning');
+                    updateStatus('statusWithout', `? Complete (${data.data?.totalCount || 0} villas)`);
+                    updateState('stateWithout', 'Done');
+                } else {
+                    addLog('logWithout', `? Error: ${response.status}`, 'error');
+                    updateStatus('statusWithout', '? Error occurred');
+                    updateState('stateWithout', 'Error');
+                }
+            } catch (error) {
+                const elapsed = (Date.now() - startTime) / 1000;
+                if (error.name === 'AbortError') {
+                    addLog('logWithout', '? You cancelled from browser, but...', 'warning');
+                    addLog('logWithout', '?? SERVER KEEPS PROCESSING! Check API logs!', 'error');
+                    updateStatus('statusWithout', '? Cancelled by you, but server continues...');
+                } else {
+                    addLog('logWithout', `? Error: ${error.message}`, 'error');
+                    updateStatus('statusWithout', '? Error occurred');
+                }
+                updateState('stateWithout', 'Cancelled');
+                updateDuration('durationWithout', elapsed);
+            } finally {
+                document.getElementById('cancelWithout').disabled = true;
+            }
+        }
+
+        function cancelWithout() {
+            if (controllerWithout) {
+                addLog('logWithout', '?? Cancelling from browser...', 'warning');
+                controllerWithout.abort();
+                addLog('logWithout', '?? But server will KEEP WORKING! (Bad!)', 'error');
+            }
+        }
+
+        // WITH CancellationToken
+        async function startWith() {
+            try {
+                const token = getToken();
+                const startTime = Date.now();
+                
+                controllerWith = new AbortController();
+                document.getElementById('cancelWith').disabled = false;
+                
+                updateStatus('statusWith', '? Searching... (cancel to see immediate stop!)');
+                updateState('stateWith', 'Running');
+                addLog('logWith', '? WITH CancellationToken - Search started', 'success');
+                
+                const interval = setInterval(() => {
+                    const elapsed = (Date.now() - startTime) / 1000;
+                    updateDuration('durationWith', elapsed);
+                }, 100);
+
+                const response = await fetch(
+                    `${API_BASE}/api/v2/villa-search/with-cancellation?searchTerm=villa&minRate=100`,
+                    {
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        signal: controllerWith.signal
+                    }
+                );
+
+                clearInterval(interval);
+                const elapsed = (Date.now() - startTime) / 1000;
+                updateDuration('durationWith', elapsed);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    addLog('logWith', `? Search completed in ${elapsed.toFixed(1)}s`, 'success');
+                    updateStatus('statusWith', `? Complete (${data.data?.totalCount || 0} villas)`);
+                    updateState('stateWith', 'Done');
+                } else if (response.status === 499) {
+                    const data = await response.json();
+                    addLog('logWith', `? Cancelled after ${elapsed.toFixed(1)}s`, 'warning');
+                    addLog('logWith', '? Server stopped immediately! Resources freed!', 'success');
+                    updateStatus('statusWith', '? Cancelled - Server stopped immediately!');
+                    updateState('stateWith', 'Cancelled');
+                } else {
+                    addLog('logWith', `? Error: ${response.status}`, 'error');
+                    updateStatus('statusWith', '? Error occurred');
+                    updateState('stateWith', 'Error');
+                }
+            } catch (error) {
+                const elapsed = (Date.now() - startTime) / 1000;
+                if (error.name === 'AbortError') {
+                    addLog('logWith', `? Cancelled after ${elapsed.toFixed(1)}s`, 'warning');
+                    addLog('logWith', '? Server stopped immediately! Check API logs!', 'success');
+                    updateStatus('statusWith', '? Cancelled - Resources saved!');
+                } else {
+                    addLog('logWith', `? Error: ${error.message}`, 'error');
+                    updateStatus('statusWith', '? Error occurred');
+                }
+                updateState('stateWith', 'Cancelled');
+                updateDuration('durationWith', elapsed);
+            } finally {
+                document.getElementById('cancelWith').disabled = true;
+            }
+        }
+
+        function cancelWith() {
+            if (controllerWith) {
+                addLog('logWith', '? Cancelling...', 'info');
+                controllerWith.abort();
+                addLog('logWith', '? Cancel signal sent - server will stop immediately!', 'success');
+            }
+        }
+
+        // Timeout Demo
+        async function startTimeout() {
+            try {
+                const token = getToken();
+                const startTime = Date.now();
+                
+                updateStatus('statusTimeout', '?? Searching with 5s timeout...');
+                updateState('stateTimeout', 'Running');
+                addLog('logTimeout', '?? Search started with 5 second timeout', 'info');
+                addLog('logTimeout', '?? Operation takes 10s, will auto-cancel at 5s', 'info');
+                
+                const interval = setInterval(() => {
+                    const elapsed = (Date.now() - startTime) / 1000;
+                    updateDuration('durationTimeout', elapsed);
+                }, 100);
+
+                const response = await fetch(
+                    `${API_BASE}/api/v2/villa-search/with-timeout?searchTerm=villa&timeoutSeconds=5`,
+                    {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }
+                );
+
+                clearInterval(interval);
+                const elapsed = (Date.now() - startTime) / 1000;
+                updateDuration('durationTimeout', elapsed);
+
+                if (response.ok) {
+                    addLog('logTimeout', `? Completed in ${elapsed.toFixed(1)}s`, 'success');
+                    updateStatus('statusTimeout', '? Complete');
+                    updateState('stateTimeout', 'Done');
+                } else if (response.status === 408) {
+                    const data = await response.json();
+                    addLog('logTimeout', `?? Timed out after ~5s`, 'warning');
+                    addLog('logTimeout', '? Server stopped automatically!', 'success');
+                    updateStatus('statusTimeout', '?? Timed out (as expected)');
+                    updateState('stateTimeout', 'Timeout');
+                } else {
+                    addLog('logTimeout', `? Error: ${response.status}`, 'error');
+                    updateStatus('statusTimeout', '? Error');
+                    updateState('stateTimeout', 'Error');
+                }
+            } catch (error) {
+                addLog('logTimeout', `? Error: ${error.message}`, 'error');
+                updateStatus('statusTimeout', '? Error occurred');
+            }
+        }
+
+        // Linked Token Demo
+        async function startLinked() {
+            try {
+                const token = getToken();
+                const startTime = Date.now();
+                
+                controllerLinked = new AbortController();
+                document.getElementById('cancelLinked').disabled = false;
+                
+                updateStatus('statusLinked', '?? Searching with linked tokens (8s timeout)...');
+                updateState('stateLinked', 'Running');
+                addLog('logLinked', '?? Search started with linked cancellation', 'info');
+                addLog('logLinked', '?? Can be cancelled by: client, 8s timeout, or manual', 'info');
+                
+                const interval = setInterval(() => {
+                    const elapsed = (Date.now() - startTime) / 1000;
+                    updateDuration('durationLinked', elapsed);
+                }, 100);
+
+                const response = await fetch(
+                    `${API_BASE}/api/v2/villa-search/with-linked-cancellation?searchTerm=villa`,
+                    {
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        signal: controllerLinked.signal
+                    }
+                );
+
+                clearInterval(interval);
+                const elapsed = (Date.now() - startTime) / 1000;
+                updateDuration('durationLinked', elapsed);
+
+                if (response.ok) {
+                    addLog('logLinked', `? Completed in ${elapsed.toFixed(1)}s`, 'success');
+                    updateStatus('statusLinked', '? Complete');
+                    updateState('stateLinked', 'Done');
+                } else if (response.status === 499) {
+                    const data = await response.json();
+                    addLog('logLinked', `? Cancelled after ${elapsed.toFixed(1)}s`, 'warning');
+                    addLog('logLinked', `?? Reason: ${data.message || 'Unknown'}`, 'info');
+                    updateStatus('statusLinked', '? Cancelled');
+                    updateState('stateLinked', 'Cancelled');
+                } else {
+                    addLog('logLinked', `? Error: ${response.status}`, 'error');
+                    updateStatus('statusLinked', '? Error');
+                    updateState('stateLinked', 'Error');
+                }
+            } catch (error) {
+                const elapsed = (Date.now() - startTime) / 1000;
+                if (error.name === 'AbortError') {
+                    addLog('logLinked', `? Cancelled after ${elapsed.toFixed(1)}s`, 'warning');
+                    addLog('logLinked', '? Stopped by client disconnect', 'success');
+                    updateStatus('statusLinked', '? Cancelled by client');
+                } else {
+                    addLog('logLinked', `? Error: ${error.message}`, 'error');
+                    updateStatus('statusLinked', '? Error');
+                }
+                updateState('stateLinked', 'Cancelled');
+                updateDuration('durationLinked', elapsed);
+            } finally {
+                document.getElementById('cancelLinked').disabled = true;
+            }
+        }
+
+        function cancelLinked() {
+            if (controllerLinked) {
+                addLog('logLinked', '? Cancelling from client...', 'info');
+                controllerLinked.abort();
+                addLog('logLinked', '? Cancel signal sent!', 'success');
+            }
+        }
+    </script>
+</body>
+</html>
