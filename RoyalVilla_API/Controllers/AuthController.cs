@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using RoyalVilla.DTO;
 using RoyalVilla_API.Data;
-using RoyalVilla_API.Services;
+using RoyalVilla_API.Services.IServices;
 
 namespace RoyalVilla_API.Controllers
 {

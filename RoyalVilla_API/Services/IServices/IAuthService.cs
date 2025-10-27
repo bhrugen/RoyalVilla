@@ -1,6 +1,6 @@
 ﻿using RoyalVilla.DTO;
 
-namespace RoyalVilla_API.Services
+namespace RoyalVilla_API.Services.IServices
 {
     public interface IAuthService
     {
