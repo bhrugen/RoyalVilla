@@ -53,20 +53,27 @@
                             <span asp-validation-for="Sqft" class="text-danger small"></span>
                         </div>
 
-                        <!-- Image URL -->
-                        <div class="mb-4">
-                            <label asp-for="ImageUrl" class="form-label">Image URL</label>
-                            <input asp-for="ImageUrl" class="form-control" placeholder="https://example.com/image.jpg" />
-                            <span asp-validation-for="ImageUrl" class="text-danger small"></span>
-                        </div>
+                       
 
                         @if (!string.IsNullOrEmpty(Model.ImageUrl))
                         {
                             <div class="text-center mb-4">
                                 <label> Current Image</label> <br/>
-                                <img src="@Model.ImageUrl" alt="@Model.Name" class="img-fluid rounded" style="max-height: 350px;">
+                                <img src="@SD.GetImageUrl(Model.ImageUrl)" alt="@Model.Name" class="img-fluid rounded" style="max-height: 350px;">
                             </div>
                         }
+
+                        <div class="mb-3">
+                            <label asp-for="Image" class="form-label">Villa Image</label>
+                            <input asp-for="Image" class="form-control" accept="image/*" onchange="previewImage(this)"
+                                   placeholder="Describe the villa" />
+                            <span asp-validation-for="Image" class="text-danger small"></span>
+                            <small class="form-text text-muted">Supported formats: JPG, JPEG, PNG (Max 5MB)</small>
+                        </div>
+
+                        <div id="imagePreview" class="mt-3 text-center" style="display:none">
+                            <img id="preview" class="img-thumbnail" style="max-width:300px;max-height:300px;" />
+                        </div>
 
                         <!-- Action Buttons -->
                         <div class="d-flex gap-2 justify-content-end">
@@ -84,4 +91,24 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        function previewImage(input){
+            const previewContainer = document.getElementById('imagePreview');
+            const preview = document.getElementById('preview');
+
+            if(input.files && input.files[0]){
+                const reader = new FileReader();
+
+                reader.onload = function (e){
+                    preview.src=e.target.result;
+                    previewContainer.style.display='block';
+                }
+
+                reader.readAsDataURL(input.files[0]);
+            }
+            else{
+                previewContainer.style.display='none';
+            }
+        }
+    </script>
 }
