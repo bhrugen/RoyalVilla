@@ -56,10 +56,10 @@ namespace RoyalVilla_API.Controllers
 
 
         [HttpPost("login")]
-        [ProducesResponseType(typeof(ApiResponse<IEnumerable<LoginResponseDTO>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<TokenDTO>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<ApiResponse<LoginResponseDTO>>> Login([FromBody] LoginRequestDTO loginRequestDTO)
+        public async Task<ActionResult<ApiResponse<TokenDTO>>> Login([FromBody] LoginRequestDTO loginRequestDTO)
         {
             try
             {
@@ -77,7 +77,7 @@ namespace RoyalVilla_API.Controllers
                 }
 
                 //auth service 
-                var response = ApiResponse<LoginResponseDTO>.Ok(loginResponse, "Login successfully");
+                var response = ApiResponse<TokenDTO>.Ok(loginResponse, "Login successfully");
                 return Ok(response);
             }
             catch (Exception ex)

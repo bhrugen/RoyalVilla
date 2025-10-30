@@ -1,10 +1,8 @@
 ﻿namespace RoyalVilla.DTO
 {
-    public class LoginResponseDTO
+    public class TokenDTO
     {
+        public string? AccessToken { get; set; }
 
-        public string? Token { get; set; }
-
-        public UserDTO? UserDTO { get; set; }
     }
 }

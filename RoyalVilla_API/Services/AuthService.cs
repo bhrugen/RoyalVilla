@@ -38,7 +38,7 @@ namespace RoyalVilla_API.Services
             return await _db.ApplicationUsers.AnyAsync(u => u.Email.ToLower() == email.ToLower());
         }
 
-        public async Task<LoginResponseDTO?> LoginAsync(LoginRequestDTO loginRequestDTO)
+        public async Task<TokenDTO?> LoginAsync(LoginRequestDTO loginRequestDTO)
         {
             try
             {
@@ -60,14 +60,14 @@ namespace RoyalVilla_API.Services
                 //generate TOKEN
                 var token = await GenerateJwtToken(user);
                 var roles = await _userManager.GetRolesAsync(user);
-                LoginResponseDTO loginResponseDTO= new LoginResponseDTO
+                TokenDTO tokenDTO = new TokenDTO
                 {
-                    UserDTO = _mapper.Map<UserDTO>(user),
-                    Token = token
+               
+                    AccessToken = token
                 };
 
-                loginResponseDTO.UserDTO.Role = roles.FirstOrDefault()??"Customer";
-                return loginResponseDTO;
+               
+                return tokenDTO;
                 
             }
             catch (Exception ex)
