@@ -20,7 +20,7 @@ namespace RoyalVillaWeb.Services
                 ApiType = SD.ApiType.POST,
                 Data = loginRequestDTO,
                 Url = APIEndpoint+"/login",
-            });
+            },withBearer:false);
         }
 
         public Task<T?> RegisterAsync<T>(RegisterationRequestDTO registerationRequestDTO)
@@ -30,7 +30,7 @@ namespace RoyalVillaWeb.Services
                 ApiType = SD.ApiType.POST,
                 Data = registerationRequestDTO,
                 Url = APIEndpoint+ "/register",
-            });
+            }, withBearer: false);
         }
     }
 }
