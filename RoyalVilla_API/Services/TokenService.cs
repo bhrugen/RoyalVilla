@@ -47,5 +47,20 @@ namespace RoyalVilla_API.Services
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
+
+        public Task<string> GenerateRefreshTokenAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task RevokeRefreshTokenAsync(string jwTokenId, string userId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task SaveRefreshTokenAsync(string userId, string jwtTokenId, string refreshToken, DateTime expiresAt)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
