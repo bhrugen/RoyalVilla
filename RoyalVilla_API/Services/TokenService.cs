@@ -66,14 +66,30 @@ namespace RoyalVilla_API.Services
             return refreshToken;
         }
 
-        public Task RevokeRefreshTokenAsync(string jwTokenId, string userId)
+        public async Task<bool> RevokeRefreshTokenAsync(string refreshTokenId)
         {
-            throw new NotImplementedException();
+            var storedToken = await _db.RefreshTokens.FirstOrDefaultAsync(u => u.RefreshTokenValue == refreshTokenId);
+            if (storedToken == null)
+            {
+                return false;
+            }
+            storedToken.IsValid = false;
+            await _db.SaveChangesAsync();
+            return true;
         }
 
-        public Task SaveRefreshTokenAsync(string userId, string jwtTokenId, string refreshToken, DateTime expiresAt)
+        public async Task SaveRefreshTokenAsync(string userId, string jwtTokenId, string refreshToken, DateTime expiresAt)
         {
-            throw new NotImplementedException();
+            var refreshTokenEntity = new RefreshToken
+            {
+                UserId = userId,
+                JwtTokenId = jwtTokenId,
+                ExpiresAt = expiresAt,
+                RefreshTokenValue = refreshToken,
+                IsValid = true
+            };
+            await _db.RefreshTokens.AddAsync(refreshTokenEntity);
+            await _db.SaveChangesAsync();
         }
     }
 }
