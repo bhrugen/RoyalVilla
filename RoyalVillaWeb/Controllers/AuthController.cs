@@ -39,13 +39,6 @@ namespace RoyalVillaWeb.Controllers
                 {
                     TokenDTO model = response.Data;
 
-                    var handler = new JwtSecurityTokenHandler();
-                    var jwt = handler.ReadJwtToken(model.AccessToken);
-
-                    var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
-                    identity.AddClaim(new Claim(ClaimTypes.Name, jwt.Claims.FirstOrDefault(u => u.Type == "email").Value));
-                    identity.AddClaim(new Claim(ClaimTypes.Role, jwt.Claims.FirstOrDefault(u => u.Type == "role").Value));
-                    var principal = new ClaimsPrincipal(identity);
                     await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,principal);
                     HttpContext.Session.SetString(SD.SessionToken, model.AccessToken);
                     return RedirectToAction("Index", "Home");

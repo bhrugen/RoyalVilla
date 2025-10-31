@@ -40,6 +40,7 @@ builder.Services.AddHttpClient("RoyalVillaAPI", client =>
     client.BaseAddress = new Uri(villaAPIUrl);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
+builder.Services.AddScoped<ITokenProvider, TokenProvider>();
 builder.Services.AddScoped<IVillaService, VillaService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 var app = builder.Build();

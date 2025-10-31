@@ -7,6 +7,6 @@ namespace RoyalVillaWeb.Services.IServices
         void SetToken(string token);
         string? GetToken();
         void ClearToken();
-        ClaimsPrincipal? GetClaimsFromToken(string token);
+        ClaimsPrincipal? CreatePrincipalFromJwtToken(string token);
     }
 }
