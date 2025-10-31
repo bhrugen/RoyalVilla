@@ -32,8 +32,8 @@ namespace RoyalVilla_API.Controllers.v2
 
 
         [HttpGet]
-        //[Authorize(Roles ="Admin")]
-        [AllowAnonymous]
+        [Authorize]
+        //[AllowAnonymous]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<VillaDTO>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<IEnumerable<VillaDTO>>>> GetVillas([FromQuery] string? filterBy,
