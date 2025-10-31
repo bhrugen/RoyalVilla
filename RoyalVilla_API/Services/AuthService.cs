@@ -140,7 +140,34 @@ namespace RoyalVilla_API.Services
             }
         }
 
+        public async Task<TokenDTO?> RefreshAccessTokenAsync(RefreshTokenRequestDTO refreshTokenRequestDTO)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(refreshTokenRequestDTO.RefreshToken))
+                {
+                    return null;
+                }
 
-       
+                //validate refresh token
+                //Token Reuse Detected
+
+                //token is invalid or expired
+
+                //get user
+
+                //revoke old refresh token
+
+                //generate new access & refresh token
+
+
+            }
+            catch (Exception ex)
+            {
+                // Handle any other unexpected errors
+                throw new InvalidOperationException("An unexpected error occurred during user registration", ex);
+            }
+        }
+
     }
 }
