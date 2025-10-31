@@ -10,5 +10,8 @@ namespace RoyalVilla_API.Services.IServices
         Task SaveRefreshTokenAsync(string userId, string jwtTokenId, string refreshToken, DateTime expiresAt);
 
         Task<bool> RevokeRefreshTokenAsync(string refreshTokenId);
+
+
+        Task<(bool IsValid, string? UserId, string? TokenFamilyId, bool TokenReused)> ValidateRefreshTokenAsync(string refreshToken);
     }
 }

@@ -92,5 +92,34 @@ namespace RoyalVilla_API.Services
             await _db.RefreshTokens.AddAsync(refreshTokenEntity);
             await _db.SaveChangesAsync();
         }
+
+        public async Task<(bool IsValid, string? UserId, string? TokenFamilyId, bool TokenReused)> ValidateRefreshTokenAsync(string refreshToken)
+        {
+            var storedToken = await _db.RefreshTokens.FirstOrDefaultAsync(u => u.RefreshTokenValue == refreshToken);
+
+            // Token doesn't exist in database
+            if (storedToken == null)
+            {
+                return (false, null, null, false);
+            }
+
+            // CRITICAL SECURITY CHECK: Token Reuse Detection
+            // If token exists but is marked as invalid, it means someone tried to reuse it
+            // This is a strong indicator of token theft
+            if (!storedToken.IsValid)
+            {
+                // Revoke all tokens in THIS TOKEN FAMILY
+
+                return (false, storedToken.UserId, storedToken.JwtTokenId, true);
+            }
+
+            if (storedToken.ExpiresAt < DateTime.Now)
+            {
+                return (false, storedToken.UserId, storedToken.JwtTokenId, false);
+            }
+
+            return (true, storedToken.UserId, storedToken.JwtTokenId, false);
+
+        }
     }
 }
