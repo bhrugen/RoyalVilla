@@ -9,5 +9,7 @@ namespace RoyalVilla_API.Services.IServices
         Task<TokenDTO?> LoginAsync(LoginRequestDTO loginRequestDTO);
 
         Task<bool> IsEmailExistsAsync(string email);
+
+        Task<TokenDTO?> RefreshAccessTokenAsync(RefreshTokenRequestDTO refreshTokenRequestDTO);
     }
 }

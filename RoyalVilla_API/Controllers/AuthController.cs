@@ -86,5 +86,45 @@ namespace RoyalVilla_API.Controllers
                 return StatusCode(500, errorResponse);
             }
         }
+
+
+        [HttpPost("refresh-token")]
+        [ProducesResponseType(typeof(ApiResponse<UserDTO>), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
+        public async Task<ActionResult<ApiResponse<UserDTO>>> RefreshAccessToken([FromBody] RefreshTokenRequestDTO refreshTokenRequestDTO)
+        {
+            try
+            {
+                if (refreshTokenRequestDTO == null || String.IsNullOrEmpty(refreshTokenRequestDTO.RefreshToken))
+                {
+                    return BadRequest(ApiResponse<object>.BadRequest("Refresh Token is required"));
+                }
+
+                var tokenResponse = await _authService.RefreshAccessTokenAsync(refreshTokenRequestDTO);
+
+                if (tokenResponse == null)
+                {
+                    // Token reuse or invalid token - log for security monitoring
+                    var errorResponse = ApiResponse<object>.Error(
+                       401,
+                       "Invalid or expired refresh token. If token reuse was detected, all your sessions have been terminated for security. Please login again.");
+                    return Unauthorized(errorResponse);
+                }
+
+
+                //auth service 
+                var response = ApiResponse<TokenDTO>.Ok(tokenResponse, "Token refreshed successfully");
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = ApiResponse<object>.Error(500, "An error occurred during token refresh", ex.Message);
+                return StatusCode(500, errorResponse);
+            }
+        }
+
+
     }
 }
