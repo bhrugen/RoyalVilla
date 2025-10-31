@@ -62,11 +62,18 @@ namespace RoyalVilla_API.Services
 
                 //generate TOKEN
                 var token = await _tokenService.GenerateJwtTokenAsync(user);
-                var roles = await _userManager.GetRolesAsync(user);
+
+                //generate new refresh token
+                var newRefreshToken = await _tokenService.GenerateRefreshTokenAsync();
+                var refreshTokenExpiry = DateTime.UtcNow.AddMinutes(5);
+
+                await _tokenService.SaveRefreshTokenAsync(user.Id, Guid.NewGuid().ToString(), newRefreshToken, refreshTokenExpiry);
+
                 TokenDTO tokenDTO = new TokenDTO
                 {
                
-                    AccessToken = token
+                    AccessToken = token,
+                    RefreshToken = newRefreshToken
                 };
 
                

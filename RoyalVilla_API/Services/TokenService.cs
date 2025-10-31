@@ -41,7 +41,7 @@ namespace RoyalVilla_API.Services
                     new Claim(ClaimTypes.Name,user.Name),
                     new Claim(ClaimTypes.Role,roles.FirstOrDefault()),
                 }),
-                Expires = DateTime.UtcNow.AddDays(7),
+                Expires = DateTime.UtcNow.AddMinutes(2),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
