@@ -1,4 +1,5 @@
-﻿using RoyalVilla.DTO;
+﻿using Microsoft.AspNetCore.Connections;
+using RoyalVilla.DTO;
 using RoyalVillaWeb.Models;
 using RoyalVillaWeb.Services.IServices;
 using System.Net;
@@ -55,7 +56,52 @@ namespace RoyalVillaWeb.Services
 
         private async Task<bool> RefreshAccessTokenAsync()
         {
+            try
+            {
+                var refreshToken = _tokenProvider.GetRefreshToken();
+                if (string.IsNullOrEmpty(refreshToken))
+                {
+                    return false;
+                }
 
+                var client = _httpClient.CreateClient("RoyalVillaAPI");
+                var refreshRequest = new RefreshTokenRequestDTO
+                {
+                    RefreshToken = refreshToken
+                };
+                var apiRequest = new ApiRequest
+                {
+                    ApiType = SD.ApiType.POST,
+                    Data = refreshRequest,
+                    Url = "/api/auth/refresh-token",
+                };
+
+                var message = CreateRequestMessage(apiRequest, withBearer: false);
+                var response = await client.SendAsync(message);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<ApiResponse<TokenDTO>>();
+                    if(result?.Success==true && result.Data!=null &&
+                         !string.IsNullOrEmpty(result.Data.AccessToken) &&
+        !string.IsNullOrEmpty(result.Data.RefreshToken))
+                    {
+                        //update tokens
+                        _tokenProvider.SetToken(result.Data.AccessToken, result.Data.RefreshToken);
+                        return true;
+                    }
+                }
+
+                _tokenProvider.ClearToken();
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Token refresh error: {ex.Message}");
+                Console.WriteLine($"   Stack Trace: {ex.StackTrace}");
+                _tokenProvider.ClearToken();
+                return false;
+            }
         }
 
         private HttpRequestMessage CreateRequestMessage(ApiRequest apiRequest, bool withBearer)
