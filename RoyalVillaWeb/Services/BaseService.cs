@@ -11,6 +11,7 @@ namespace RoyalVillaWeb.Services
     public class BaseService : IBaseService
     {
         public IHttpClientFactory _httpClient { get; set; }
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ITokenProvider _tokenProvider;
 
         private static readonly JsonSerializerOptions JsonOptions = new()
@@ -20,11 +21,12 @@ namespace RoyalVillaWeb.Services
 
         public ApiResponse<object> ResponseModel { get; set; }
 
-        public BaseService(IHttpClientFactory httpClient, ITokenProvider tokenProvider)
+        public BaseService(IHttpClientFactory httpClient, ITokenProvider tokenProvider, IHttpContextAccessor httpContextAccessor)
         {
             this.ResponseModel = new();
             _httpClient = httpClient;
             _tokenProvider = tokenProvider;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<T?> SendAsync<T>(ApiRequest apiRequest, bool withBearer=true)
@@ -40,7 +42,19 @@ namespace RoyalVillaWeb.Services
                 if(apiResponse.StatusCode==HttpStatusCode.Unauthorized && withBearer)
                 {
                     Console.WriteLine("⚠️ Received401 Unauthorized - attempting token refresh");
-
+                    var refreshed = await RefreshAccessTokenAsync();
+                    if (refreshed)
+                    {
+                        //Token refreshed successfully - retrying request
+                        var retryMessage = CreateRequestMessage(apiRequest, withBearer);
+                        apiResponse = await client.SendAsync(message);
+                    }
+                    else
+                    {
+                        _tokenProvider.ClearToken();
+                        _httpContextAccessor.HttpContext?.Response.Redirect("/auth/login");
+                        return default;
+                    }
                 }
 
 
