@@ -109,7 +109,17 @@ namespace RoyalVilla_API.Services
             if (!storedToken.IsValid)
             {
                 // Revoke all tokens in THIS TOKEN FAMILY
+                var tokenFamily = await _db.RefreshTokens.Where(u => u.JwtTokenId == storedToken.JwtTokenId &&
+                u.UserId == storedToken.UserId).ToListAsync();
 
+                if (tokenFamily.Count>0)
+                {
+                    foreach (var token in tokenFamily)
+                    {
+                        token.IsValid = false;
+                    }
+                    await _db.SaveChangesAsync();
+                }
                 return (false, storedToken.UserId, storedToken.JwtTokenId, true);
             }
 
