@@ -15,6 +15,10 @@ namespace RoyalVillaWeb.Services
         public IHttpClientFactory _httpClient { get; set; }
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ITokenProvider _tokenProvider;
+        // Session key for refresh lock - prevents concurrent refresh requests
+        private const string RefreshingTokenKey = "_RefreshingToken";
+
+
 
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
@@ -31,6 +35,22 @@ namespace RoyalVillaWeb.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
+        private bool IsRefreshingToken
+        {
+            get => _httpContextAccessor.HttpContext?.Session.GetString(RefreshingTokenKey) == "true";
+            set
+            {
+                if (value)
+                {
+                    _httpContextAccessor.HttpContext?.Session.SetString(RefreshingTokenKey,"true");
+                }
+                else
+                {
+                    _httpContextAccessor.HttpContext?.Session.Remove(RefreshingTokenKey);
+                }
+            }
+        }
+
         public async Task<T?> SendAsync<T>(ApiRequest apiRequest, bool withBearer=true)
         {
             try
@@ -41,7 +61,7 @@ namespace RoyalVillaWeb.Services
                 var apiResponse = await client.SendAsync(message);
 
                 //401 then we can try with refresh token
-                if(apiResponse.StatusCode==HttpStatusCode.Unauthorized && withBearer)
+                if(apiResponse.StatusCode==HttpStatusCode.Unauthorized && withBearer && !IsRefreshingToken)
                 {
                     Console.WriteLine("⚠️ Received401 Unauthorized - attempting token refresh");
                     var refreshed = await RefreshAccessTokenAsync();
@@ -75,6 +95,19 @@ namespace RoyalVillaWeb.Services
         {
             try
             {
+
+                if (IsRefreshingToken)
+                {
+                    await Task.Delay(1000);
+                    var accessToken = _tokenProvider.GetAccessToken();
+                    if (accessToken != null)
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+                IsRefreshingToken = true;
+
                 var refreshToken = _tokenProvider.GetRefreshToken();
                 if (string.IsNullOrEmpty(refreshToken))
                 {
@@ -118,6 +151,10 @@ namespace RoyalVillaWeb.Services
                 Console.WriteLine($"   Stack Trace: {ex.StackTrace}");
                 _tokenProvider.ClearToken();
                 return false;
+            }
+            finally
+            {
+                IsRefreshingToken= false;
             }
         }
 
