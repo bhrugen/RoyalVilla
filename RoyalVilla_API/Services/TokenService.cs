@@ -123,7 +123,7 @@ namespace RoyalVilla_API.Services
                 return (false, storedToken.UserId, storedToken.JwtTokenId, true);
             }
 
-            if (storedToken.ExpiresAt < DateTime.Now)
+            if (storedToken.ExpiresAt < DateTime.UtcNow)
             {
                 return (false, storedToken.UserId, storedToken.JwtTokenId, false);
             }
